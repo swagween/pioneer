@@ -9,6 +9,35 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ImGui-SFML::ImGui-SFML)
 target_sources(${PROJECT_NAME} PRIVATE
 
         main.cpp
+	automa/GameState.hpp
+	automa/GameState.cpp
+	automa/StateManager.hpp
+	automa/StateManager.cpp
+	canvas/Canvas.hpp
+	canvas/Canvas.cpp
+	canvas/Layer.hpp
+	canvas/Layer.cpp
+	canvas/Tile.hpp
+	canvas/Tile.cpp
+	canvas/Clipboard.hpp
+	canvas/Clipboard.cpp
+ canvas/Grid.hpp
+ canvas/Grid.cpp
+	tool/Tool.hpp
+	tool/Tool.cpp
+	tool/Brush.hpp
+	tool/Brush.cpp
+	tool/Hand.hpp
+	tool/Hand.cpp
+	tool/Fill.hpp
+	tool/Fill.cpp
+	tool/SelectionRectangular.hpp
+	tool/SelectionRectangular.cpp
+        util/Lookup.hpp
+        util/Camera.hpp
+        util/PhysicsComponent.hpp
+        util/Service.hpp
+        util/ServiceLocator.hpp
 
 )
 

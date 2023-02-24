@@ -4,6 +4,9 @@
 //
 
 #include <SFML/Graphics.hpp>
+#include "automa/StateManager.hpp"
+#include "util/Lookup.hpp"
+#include "util/ServiceLocator.hpp"
 #include <iostream>
 #include <chrono>
 
@@ -32,40 +35,81 @@ fs::path find_resources(fs::path exe) {
 
 namespace {
 
+auto SM = automa::StateManager{};
+auto window = sf::RenderWindow();
+
 sf::Color PIONEER_BLUE = sf::Color(85, 173, 232);
 
+std::string state{};
+
 static void show_overlay(bool* debug) {
-    const float PAD = 10.0f;
-    static int corner = 0;
-    ImGuiIO& io = ImGui::GetIO();
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-    if (corner != -1) {
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-        ImVec2 work_size = viewport->WorkSize;
-        ImVec2 window_pos, window_pos_pivot;
-        window_pos.x = (corner & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
-        window_pos.y = (corner & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
-        window_pos_pivot.x = (corner & 1) ? 1.0f : 0.0f;
-        window_pos_pivot.y = (corner & 2) ? 1.0f : 0.0f;
-        ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-        window_flags |= ImGuiWindowFlags_NoMove;
-    }
-    ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
-    if (ImGui::Begin("Debug Mode", debug, window_flags)) {
-        ImGui::Text("Debug Window\n" "(right-click to change position)");
-        ImGui::Separator();
-        if (ImGui::IsMousePosValid()) {
-            ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
-        } else {
-            ImGui::Text("Mouse Position: <invalid>");
+    
+    SM.get_current_state().gui_render(window);
+    //Main Menu
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if(ImGui::Button("New")) {
+                ImGui::OpenPopup("New File");
+            }
+            // Always center this window when appearing
+            ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
+            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+            if (ImGui::BeginPopupModal("New File", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                ImGui::Text("Choose a region:");
+                // Testing behavior of widgets stacking their own regular popups over the modal.
+                static int item = 1;
+                ImGui::Combo("Region", &item, "Firstwind\0Overturned\0Base\0Grub\0Toxic\0Frozen\0Mansion\0Ice\0Night\0Shadow\0Ashtown\0Snow\0Sky\0Greatwing\0Factory");
+                ImGui::Text("Please enter a file name:");
+                char buffer;
+//                ImGui::InputText("File Name", &buffer, 32);
+                ImGui::InputTextWithHint("File Name", "level_01", &buffer, 32);
+                ImGui::Separator();
+               
+                if (ImGui::Button("Close"))
+                    ImGui::CloseCurrentPopup();
+                ImGui::SameLine();
+                if (ImGui::Button("Create")) {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+            if(ImGui::Button("Open")) {}
+            if(ImGui::Button("Save")) {
+                if( true ) {
+                    ImGui::OpenPopup("Notice");
+                } else {
+                    ImGui::OpenPopup("Notice: Error");
+                }
+            }
+            if (ImGui::BeginPopupModal("Notice", NULL, ImGuiWindowFlags_Modal)) {
+                ImGui::Text("File saved successfully.");
+                if (ImGui::Button("Close"))
+                    ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+            }
+            if (ImGui::BeginPopupModal("Notice: Error", NULL, ImGuiWindowFlags_Modal)) {
+                ImGui::Text("ERROR: File failed to save.");
+                if (ImGui::Button("Close"))
+                    ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+            }
+            ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Edit")) {
+            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
     }
-    ImGui::End();
+    
 }
 
-const sf::Vector2<uint32_t> aspect_ratio { 3840, 2160 };
-const sf::Vector2<uint32_t> screen_dimensions { aspect_ratio.x / 4, aspect_ratio.y / 4 };
 const int TIME_STEP_MILLI = 100;
 
 float G = 0.8f;
@@ -74,6 +118,34 @@ void run(char** argv) {
     
     //load textures
     std::string resource_path = find_resources(argv[0]);
+    const int TILE_WIDTH = 32;
+    
+    //load the tilesets!
+    sf::Texture t_tiles_provisional{};
+    sf::Texture t_tiles_overturned{};
+    sf::Texture t_tiles_ash{};
+    sf::Texture t_tiles_shadow{};
+    sf::Texture t_tiles_hoarder{};
+    sf::Texture t_tiles_abandoned{};
+    t_tiles_provisional.loadFromFile(resource_path + "/tile/provisional_tiles.png");
+    t_tiles_shadow.loadFromFile(resource_path + "/tile/shadow_tiles.png");
+    
+    std::vector<sf::Sprite> sp_tileset_provisional{};
+    std::vector<sf::Sprite> sp_tileset_shadow{};
+    std::vector<sf::Sprite> sp_tileset_abandoned{};
+    for(int i = 0; i < 16; ++i) {
+        for(int j = 0; j < 16; ++j) {
+            sp_tileset_provisional.push_back(sf::Sprite());
+            sp_tileset_shadow.push_back(sf::Sprite());
+            //do all tilesets in this loop
+            sp_tileset_provisional.back().setTexture(t_tiles_provisional);
+            sp_tileset_shadow.back().setTexture(t_tiles_shadow);
+            sp_tileset_provisional.back().setTextureRect(sf::IntRect({j * TILE_WIDTH, i * TILE_WIDTH}, {TILE_WIDTH, TILE_WIDTH}));
+            sp_tileset_shadow.back().setTextureRect(sf::IntRect({j * TILE_WIDTH, i * TILE_WIDTH}, {TILE_WIDTH, TILE_WIDTH}));
+        }
+    }
+    
+    SM.set_current_state(std::make_unique<automa::Metagrid>());
     
     
     bool debug_mode = false;
@@ -83,7 +155,7 @@ void run(char** argv) {
     auto elapsed_time = Time{};
     auto time_step = Time{std::chrono::milliseconds(TIME_STEP_MILLI)}; //FPS
     //some SFML variables for drawing a basic window + background
-    auto window = sf::RenderWindow{sf::VideoMode{screen_dimensions.x, screen_dimensions.y}, "Pioneer v1.0"};
+    window.create(sf::VideoMode(screen_dimensions.x, screen_dimensions.y), "Pioneer (beta v1.0)");
     ImGui::SFML::Init(window);
     
     window.setVerticalSyncEnabled(true);
@@ -111,6 +183,7 @@ void run(char** argv) {
             ImGui::SFML::ProcessEvent(event);
             switch(event.type) {
                 case sf::Event::Closed:
+                    lookup::get_state_string.clear();
                     return;
                 case sf::Event::KeyPressed:
                     //player can refresh grid by pressing 'Z'
@@ -120,15 +193,36 @@ void run(char** argv) {
                     if(event.key.code == sf::Keyboard::D) {
                         debug_mode = !debug_mode;
                     }
+                    if(event.key.code == sf::Keyboard::Num1) {
+                        svc::current_tool = std::move(std::make_unique<tool::Hand>());
+                    }
+                    if(event.key.code == sf::Keyboard::Num2) {
+                        svc::current_tool = std::move(std::make_unique<tool::Brush>());
+                    }
+                    if(event.key.code == sf::Keyboard::Num3) {
+                        svc::current_tool = std::move(std::make_unique<tool::Fill>());
+                    }
+                    if(event.key.code == sf::Keyboard::Num4) {
+                        svc::current_tool = std::move(std::make_unique<tool::SelectionRectangular>());
+                    }
+                    if(event.key.code == sf::Keyboard::W) {
+                        SM.set_current_state(std::make_unique<automa::Editor>());
+                        SM.get_current_state().init(resource_path + "/level/DOJO");
+                        SM.get_current_state().setTilesetTexture(t_tiles_provisional);
+                    }
+                    if(event.key.code == sf::Keyboard::Q) {
+                        SM.set_current_state(std::make_unique<automa::Metagrid>());
+                    }
                     break;
                 default:
                     break;
             }
+            SM.get_current_state().handle_events(event, window);
         }
         
         //game logic and rendering
         if(elapsed_time > time_step) {
-            
+            SM.get_current_state().logic();
         }
         
         //ImGui update
@@ -141,6 +235,9 @@ void run(char** argv) {
         window.clear();
         window.draw(background);
         
+        SM.get_current_state().render(window);
+//        sp_tileset_provisional.at(1).setPosition(100, 100);
+//        window.draw(sp_tileset_provisional.at(1));
         
         //draw canvas here
         
