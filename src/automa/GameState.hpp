@@ -15,6 +15,8 @@
 #include "../canvas/Canvas.hpp"
 #include "../util/ServiceLocator.hpp"
 #include "../tool/Tool.hpp"
+#include <SFML/OpenGL.hpp>
+#include <imgui-SFML.h>
 
 namespace automa {
 
@@ -102,6 +104,7 @@ public:
     }
     void setTilesetTexture(sf::Texture tile_texture) {
         tileset_texture = tile_texture;
+        
         for(int i = 0; i < 16; ++i) {
             for(int j = 0; j < 16; ++j) {
                 tileset.push_back(sf::Sprite());
@@ -149,12 +152,15 @@ public:
     
     canvas::Canvas map{{48, 32}};
     sf::Texture tileset_texture{};
+    ImTextureID tileset_tex_id{};
     std::vector<sf::Sprite> tileset{};
     
     bool mouse_held{};
     sf::Vector2<float> mouse_clicked_position{};
     
 };
+
+
 
 }
 

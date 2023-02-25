@@ -129,6 +129,8 @@ void run(char** argv) {
     sf::Texture t_tiles_abandoned{};
     t_tiles_provisional.loadFromFile(resource_path + "/tile/provisional_tiles.png");
     t_tiles_shadow.loadFromFile(resource_path + "/tile/shadow_tiles.png");
+    t_tiles_ash.loadFromFile(resource_path + "/tile/ash_tiles.png");
+    t_tiles_hoarder.loadFromFile(resource_path + "/tile/hoarder_tiles.png");
     
     std::vector<sf::Sprite> sp_tileset_provisional{};
     std::vector<sf::Sprite> sp_tileset_shadow{};
@@ -162,7 +164,7 @@ void run(char** argv) {
     sf::RectangleShape background{};
     background.setSize(static_cast<sf::Vector2<float> >(screen_dimensions));
     background.setPosition(0, 0);
-    background.setFillColor(sf::Color(20, 20, 30));
+    background.setFillColor(sf::Color(40, 60, 80));
     
     
     //game loop
@@ -208,7 +210,7 @@ void run(char** argv) {
                     if(event.key.code == sf::Keyboard::W) {
                         SM.set_current_state(std::make_unique<automa::Editor>());
                         SM.get_current_state().init(resource_path + "/level/DOJO");
-                        SM.get_current_state().setTilesetTexture(t_tiles_provisional);
+                        SM.get_current_state().setTilesetTexture(t_tiles_shadow);
                     }
                     if(event.key.code == sf::Keyboard::Q) {
                         SM.set_current_state(std::make_unique<automa::Metagrid>());
@@ -230,6 +232,7 @@ void run(char** argv) {
         
         //ImGui stuff
         show_overlay(&debug_mode);
+        ImGui::ShowDemoWindow();
         
         //my renders
         window.clear();
