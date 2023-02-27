@@ -24,6 +24,7 @@ public:
     Grid grid{};
     uint8_t render_order{};
     bool collidable{};
+    bool active{};
     sf::Vector2<uint16_t> dimensions{};
     
 };

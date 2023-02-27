@@ -6,19 +6,17 @@
 //
 
 #include "Canvas.hpp"
+#include "../util/ServiceLocator.hpp"
+#include "../util/Lookup.hpp"
 
 namespace canvas {
 
 Canvas::Canvas() {
-    for(int i = 0; i < NUM_LAYERS; ++i) {
-        layers.push_back(Layer( i, (i == MIDDLEGROUND), dimensions ));
-        layers.back().grid.initialize();
-    }
-    dimensions = {32, 48};
 }
 
 Canvas::Canvas(sf::Vector2<uint16_t> dim) {
     dimensions = dim;
+    real_dimensions = {(float)dim.x * CELL_SIZE, (float)dim.y * CELL_SIZE};
     for(int i = 0; i < NUM_LAYERS; ++i) {
         layers.push_back(Layer( i, (i == MIDDLEGROUND), dimensions ));
         layers.back().grid.initialize();
@@ -27,10 +25,42 @@ Canvas::Canvas(sf::Vector2<uint16_t> dim) {
 
 void Canvas::load(const std::string& path) {
     
-    //get data from text files
+    std::string filepath = path + "/map_data.txt";
+    
     int value{};
     int counter = 0;
     std::ifstream input{};
+    input.open(filepath);
+    if (!input.is_open()) {
+        printf("Failed to open file.");
+        return;
+    }
+    
+    //dimensions and layers
+    input >> value; dimensions.x = value; input.ignore();
+    input >> value; dimensions.y = value; input.ignore();
+    input >> value; chunk_dimensions.x = value; input.ignore();
+    input >> value; chunk_dimensions.y = value; input.ignore();
+    if((dimensions.x / chunk_dimensions.x != CHUNK_SIZE) ||
+       (dimensions.y / chunk_dimensions.y != CHUNK_SIZE)) { printf("File is corrupted: Invalid dimensions."); return; }
+    real_dimensions = {(float)dimensions.x * CELL_SIZE, (float)dimensions.y * CELL_SIZE};
+    for(int i = 0; i < NUM_LAYERS; ++i) {
+        layers.push_back(Layer( i, (i == MIDDLEGROUND), dimensions ));
+        layers.back().grid.initialize();
+    }
+    //style
+    input >> value; input.ignore();
+    if(value >= lookup::get_style.size()) { printf("File is corrupted: Invalid style."); return; } else {
+        style = lookup::get_style.at(value);
+    }
+    //bg;
+    input >> value; input.ignore();
+    if(value >= lookup::get_backdrop.size()) { printf("File is corrupted: Invalid backdrop."); return; } else {
+        bg = lookup::get_backdrop.at(value);
+    }
+    input.close();
+    
+    //get map tiles from text files
     for(auto& layer : layers) {
         //open map_tiles_[i].txt
         input.open(path + "/map_tiles_" + std::to_string(counter) + ".txt");
@@ -49,6 +79,7 @@ void Canvas::load(const std::string& path) {
         input.close();
         ++counter;
     }
+    svc::active_layer = MIDDLEGROUND;
 }
 
 void Canvas::save(const std::string& path) {
@@ -92,8 +123,10 @@ int Canvas::get_active_layer() {
     
 }
 
-void Canvas::edit_tile_at(int i, int j, int index, int new_val) {
-    
+void Canvas::edit_tile_at(int i, int j, int new_val, int layer_index) {
+    if(layer_index >= layers.size()) { return; }
+    if((i + j * dimensions.x) >= layers.at(layer_index).grid.cells.size()) { return; };
+    layers.at(layer_index).grid.cells.at(i + j * dimensions.x).value = new_val;
 }
 
 int Canvas::tile_val_at(int i, int j, int layer) {

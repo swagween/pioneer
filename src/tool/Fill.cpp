@@ -6,14 +6,18 @@
 //
 
 #include "Tool.hpp"
+#include "../util/ServiceLocator.hpp"
 
 namespace tool {
 
-void Fill::handle_events(canvas::Canvas& canvas) {
+void Fill::handle_events(canvas::Canvas& canvas, sf::Event e) {
     
 }
 
-void Fill::update(int _x, int _y) {
+void Fill::update() {
+    int posx = (int)position.x/canvas::CELL_SIZE;
+    int posy = (int)position.y/canvas::CELL_SIZE;
+    scaled_position = sf::Vector2<int>{posx, posy};
 }
 
 void Fill::fill_section(int prev_val, const int new_val, int i, int j, canvas::Canvas& canvas) {
@@ -25,7 +29,7 @@ void Fill::fill_section(int prev_val, const int new_val, int i, int j, canvas::C
         return;
     } else {
         
-        canvas.edit_tile_at(j, i, 0, new_val);
+        canvas.edit_tile_at(j, i, new_val, svc::active_layer);
         
         fill_section(prev_val, new_val, i + 1, j, canvas);
         fill_section(prev_val, new_val, i - 1, j, canvas);
@@ -37,6 +41,10 @@ void Fill::fill_section(int prev_val, const int new_val, int i, int j, canvas::C
 
 void Fill::set_priority(bool prim) {
     primary = prim;
+}
+
+void Fill::store_tile(int index) {
+    tile = index;
 }
 
 }

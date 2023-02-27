@@ -13,33 +13,19 @@
 
 namespace canvas {
 
-const int MAX_DIM = 256;
-const int MIN_DIM = 8;
-
 class Clipboard {
     
 public:
     
     Clipboard();
     
-    void init();
-    
-    void write_to_clipboard(canvas::Tile selection[MAX_DIM][MAX_DIM]);
+    void write_to_clipboard(std::vector<Tile>& selection);
     void clear_clipboard();
+    uint16_t get_value_at(uint16_t i, uint16_t j, uint16_t idx);
     
-    void set_width_and_height(int w_, int h_);
+    sf::Vector2<uint16_t> dimensions{};
     
-    int get_value_at(int i, int j, int idx);
-    
-    int get_width();
-    int get_height();
-    
-private:
-    
-    int width;
-    int height;
-    
-    canvas::Tile coords[MAX_DIM][MAX_DIM];
+    std::vector<Tile> cells;
     
 };
 

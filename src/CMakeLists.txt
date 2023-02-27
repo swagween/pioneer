@@ -31,6 +31,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 	tool/Hand.cpp
 	tool/Fill.hpp
 	tool/Fill.cpp
+    tool/Erase.cpp
 	tool/SelectionRectangular.hpp
 	tool/SelectionRectangular.cpp
         util/Lookup.hpp

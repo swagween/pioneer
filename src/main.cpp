@@ -45,6 +45,7 @@ std::string state{};
 static void show_overlay(bool* debug) {
     
     SM.get_current_state().gui_render(window);
+    
     //Main Menu
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
@@ -207,12 +208,12 @@ void run(char** argv) {
                     if(event.key.code == sf::Keyboard::Num4) {
                         svc::current_tool = std::move(std::make_unique<tool::SelectionRectangular>());
                     }
-                    if(event.key.code == sf::Keyboard::W) {
+                    if(event.key.code == sf::Keyboard::Enter) {
                         SM.set_current_state(std::make_unique<automa::Editor>());
-                        SM.get_current_state().init(resource_path + "/level/DOJO");
+                        SM.get_current_state().init(resource_path);
                         SM.get_current_state().setTilesetTexture(t_tiles_shadow);
                     }
-                    if(event.key.code == sf::Keyboard::Q) {
+                    if(event.key.code == sf::Keyboard::Equal) {
                         SM.set_current_state(std::make_unique<automa::Metagrid>());
                     }
                     break;

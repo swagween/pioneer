@@ -9,7 +9,7 @@
 
 namespace tool {
 
-void SelectionRectangular::handle_events(canvas::Canvas& canvas) {
+void SelectionRectangular::handle_events(canvas::Canvas& canvas, sf::Event e) {
     //    if(event_type = mouse_button_down && active) {
     //get mnouse state
     //adjust
@@ -80,11 +80,18 @@ void SelectionRectangular::render_selection(const canvas::Layer& layer) {
     
 }
 
-void SelectionRectangular::update(int _x, int _y) {
+void SelectionRectangular::update() {
+    int posx = (int)position.x/canvas::CELL_SIZE;
+    int posy = (int)position.y/canvas::CELL_SIZE;
+    scaled_position = sf::Vector2<int>{posx, posy};
 }
 
 void SelectionRectangular::set_priority(bool prim) {
     primary = prim;
+}
+
+void SelectionRectangular::store_tile(int index) {
+
 }
 
 }

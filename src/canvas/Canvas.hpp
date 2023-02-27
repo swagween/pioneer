@@ -20,10 +20,11 @@
 
 namespace canvas {
 
-const int NUM_LAYERS = 8;
+const int NUM_LAYERS{8};
+const int CHUNK_SIZE{16};
 
-enum BACKDROP {
-    BG_NULL = 0,
+enum class BACKDROP {
+    BG_NULL,
     BG_SUNSET,
     BG_SUNRISE,
     BG_OPEN_SKY,
@@ -37,7 +38,7 @@ enum LAYER_ORDER {
     FOREGROUND = 7,
 };
 
-enum STYLE {
+enum class STYLE {
     STYLE_NULL,
     FIRSTWIND = 0,
     OVERTURNED,
@@ -61,6 +62,8 @@ enum STYLE {
     MANSION
 };
 
+const int CELL_SIZE{32};
+
 class Canvas {
     
 public:
@@ -71,7 +74,7 @@ public:
     void save(const std::string& path);
     int get_active_layer();
     
-    void edit_tile_at(int i, int j, int index, int new_val);
+    void edit_tile_at(int i, int j, int new_val, int layer_index);
     int tile_val_at(int i, int j, int layer);
     void render(sf::RenderWindow& win, std::vector<sf::Sprite>& tileset, sf::Vector2<float> cam);
     canvas::Tile& tile_at(const uint8_t i, const uint8_t j);
@@ -79,6 +82,7 @@ public:
     
     //layers
     std::vector<Layer> layers{};
+    sf::Vector2<float> real_dimensions{};
     sf::Vector2<uint16_t> dimensions{};
     sf::Vector2<uint16_t> chunk_dimensions{};
     

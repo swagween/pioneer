@@ -28,6 +28,14 @@ enum class STATE {
     EDITOR
 };
 
+enum TOOL_INDEX {
+    BRUSH = 0,
+    FILL,
+    SELECT,
+    ERASE,
+    HAND
+};
+
 class GameState {
     
 public:
@@ -80,9 +88,7 @@ public:
     
     void render(sf::RenderWindow& win) {}
     
-    void gui_render(sf::RenderWindow& win) {
-        ImGui::Text("ImGui in Metagrid");
-    }
+    void gui_render(sf::RenderWindow& win);
 };
 
 // =======================================================================
@@ -94,13 +100,21 @@ public:
 class Editor : public GameState {
 public:
     
-    const int TILE_WIDTH = 32;
+    const int TILE_WIDTH{32};
+    const int NUM_TOOLS{5};
     
     Editor() {
         state = STATE::EDITOR;
     }
     void init(const std::string& load_path) {
-        map.load(load_path);
+        map.load(load_path + "/level/DOJO");
+        tool_texture.loadFromFile(load_path + "/gui/tools.png");
+        map.layers.at(canvas::MIDDLEGROUND).active = true;
+        for(int i = 0; i < 5; i++) {
+            tool_sprites.push_back(sf::Sprite());
+            tool_sprites.back().setTexture(tool_texture);
+            tool_sprites.back().setTextureRect(sf::IntRect({i * 32, 0}, {32, 32}));
+        }
     }
     void setTilesetTexture(sf::Texture tile_texture) {
         tileset_texture = tile_texture;
@@ -114,50 +128,31 @@ public:
             }
         }
     }
-    void handle_events(sf::Event event, sf::RenderWindow& win) {
-        if(event.type == sf::Event::EventType::KeyPressed) {
-            if (event.key.code == sf::Keyboard::H) {
-            }
-        }
-        if(event.type == sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-            mouse_held = true;
-            mouse_clicked_position = static_cast<sf::Vector2<float>>(sf::Mouse::getPosition());
-        } else {
-            mouse_held = false;
-        }
-    }
+    void handle_events(sf::Event event, sf::RenderWindow& win);
     
-    void logic() {
-        if(mouse_held) {
-            sf::Vector2i mouse_pos = sf::Mouse::getPosition();
-            sf::Vector2<float> m_pos = {(float)mouse_pos.x, (float)mouse_pos.y};
-            sf::Vector2<float> mouse_diff = m_pos - mouse_clicked_position;
-            svc::cameraLocator.get().move(mouse_diff);
-        }
-        svc::cameraLocator.get().update();
-    }
+    void logic();
     
-    void render(sf::RenderWindow& win) {
-        for(auto& layer : map.layers) {
-            for(auto& cell : layer.grid.cells) {
-                if(layer.collidable) {
-                    tileset.at(cell.value).setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
-                    win.draw(tileset.at(cell.value));
-                }
-            }
-        }
-    }
+    void render(sf::RenderWindow& win);
     
     void gui_render(sf::RenderWindow& win);
     
-    canvas::Canvas map{{48, 32}};
+    canvas::Canvas map{};
     sf::Texture tileset_texture{};
-    ImTextureID tileset_tex_id{};
     std::vector<sf::Sprite> tileset{};
+    
+    sf::Texture tool_texture{};
+    std::vector<sf::Sprite> tool_sprites{};
     
     bool mouse_held{};
     sf::Vector2<float> mouse_clicked_position{};
     
+    bool slide_left{};
+    bool slide_right{};
+    bool slide_up{};
+    bool slide_down{};
+    
+    bool show_grid{true};
+    bool show_all_layers{true};
 };
 
 

@@ -20,6 +20,9 @@ namespace svc {
 
 inline auto cameraLocator = Service<Camera>::Instance{};
 inline std::unique_ptr<tool::Tool> current_tool = std::make_unique<tool::Hand>();
+inline std::unique_ptr<tool::Tool> secondary_tool = std::make_unique<tool::Hand>();
+
+inline auto active_layer{4};
 
 }
 

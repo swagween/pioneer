@@ -20,10 +20,6 @@ const float CAM_GRAV = 0.003f;
 const int CX_OFFSET = 60;
 const int CY_OFFSET = 60;
 
-const int SHAKE_FACTOR = 8;
-const int SHAKE_VOLATILITY = 12;
-const int SHAKE_DURATION = 100;
-
 const float CAM_BOUNDARY = 2048.0f;
 
 const sf::Vector2<uint32_t> aspect_ratio { 3840, 2160 };
@@ -47,14 +43,6 @@ public:
         physics.update_dampen();
         bounding_box.left = physics.position.x;
         bounding_box.top = physics.position.y;
-        if(bounding_box.top < -CAM_BOUNDARY) {
-            bounding_box.top = -CAM_BOUNDARY;
-            physics.position.y = 0.0f;
-        }
-        if(bounding_box.left < -CAM_BOUNDARY) {
-            bounding_box.left = -CAM_BOUNDARY;
-            physics.position.x = 0.0f;
-        }
     }
     
     void set_position(sf::Vector2<float> new_pos) {
@@ -64,8 +52,8 @@ public:
     void center(sf::Vector2<float> new_position) {
         float gx = physics.position.x;
         float gy = physics.position.y;
-        float mx = new_position.x - bounding_box.width / 2;
-        float my = new_position.y - bounding_box.height / 2;
+        float mx = new_position.x;
+        float my = new_position.y;
         
         float force_x = mx - gx;
         float force_y = my - gy;
