@@ -71,5 +71,38 @@ inline std::unordered_map<int, canvas::BACKDROP> get_backdrop {
     {4,     canvas::BACKDROP::BG_BLACK      }
 };
 
+inline std::unordered_map<canvas::STYLE, int> get_style_id {
+    {canvas::STYLE::STYLE_NULL, -1},
+    {canvas::STYLE::FIRSTWIND, 0    },
+    {canvas::STYLE::OVERTURNED, 1   },
+    {canvas::STYLE::GRUB, 2         },
+    {canvas::STYLE::TOXIC, 3        },
+    {canvas::STYLE::BASE, 4         },
+    {canvas::STYLE::FROZEN, 5       },
+    {canvas::STYLE::NIGHT, 6        },
+    {canvas::STYLE::WORM, 7         },
+    {canvas::STYLE::SKY, 8          },
+    {canvas::STYLE::ASH, 9          },
+    {canvas::STYLE::GREATWING, 10    },
+    {canvas::STYLE::ICE, 11          },
+    {canvas::STYLE::SNOW, 12         },
+    {canvas::STYLE::STONE, 13        },
+    {canvas::STYLE::ABANDONED, 14    },
+    {canvas::STYLE::ANCIENT, 15      },
+    {canvas::STYLE::FACTORY, 16      },
+    {canvas::STYLE::SHADOW, 17       },
+    {canvas::STYLE::HOARDER, 18      },
+    {canvas::STYLE::MANSION, 19      }
+};
+
+inline std::unordered_map<canvas::BACKDROP, int> get_backdrop_id {
+    {canvas::BACKDROP::BG_NULL, -1      },
+    {canvas::BACKDROP::BG_SUNSET, 0     },
+    {canvas::BACKDROP::BG_SUNRISE, 1    },
+    {canvas::BACKDROP::BG_OPEN_SKY, 2   },
+    {canvas::BACKDROP::BG_RED_SKY, 3    },
+    {canvas::BACKDROP::BG_BLACK, 4      }
+};
+
 }
 

@@ -194,12 +194,88 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
     static int corner = 0;
     ImGuiIO& io = ImGui::GetIO();
     io.FontGlobalScale = 2.0;
-//    if(svc::current_tool.get()->type != tool::TOOL_TYPE::HAND) {
+    
     svc::current_tool.get()->position = sf::Vector2<float>{io.MousePos.x, io.MousePos.y} - svc::cameraLocator.get().physics.position;
     svc::secondary_tool.get()->position = sf::Vector2<float>{io.MousePos.x, io.MousePos.y} - svc::cameraLocator.get().physics.position;
-//    } else {
-//        svc::current_tool.get()->position = sf::Vector2<float>{io.MousePos.x, io.MousePos.y};
-//    }
+    
+    //Main Menu
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if(ImGui::Button("New")) {
+                ImGui::OpenPopup("New File");
+            }
+            // Always center this window when appearing
+            ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
+            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+            if (ImGui::BeginPopupModal("New File", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                ImGui::Text("Choose a region:");
+                // Testing behavior of widgets stacking their own regular popups over the modal.
+                static int item = 1;
+                ImGui::Combo("Region", &item, "Firstwind\0Overturned\0Base\0Grub\0Toxic\0Frozen\0Mansion\0Ice\0Night\0Shadow\0Ashtown\0Snow\0Sky\0Greatwing\0Factory");
+                ImGui::Text("Please enter a file name:");
+                char buffer{};
+                ImGui::InputTextWithHint("File Name", "level_01", &buffer, (size_t)32);
+                ImGui::Separator();
+               
+                if (ImGui::Button("Close"))
+                    ImGui::CloseCurrentPopup();
+                ImGui::SameLine();
+                if (ImGui::Button("Create")) {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+            if(ImGui::Button("Open")) {}
+            if(ImGui::Button("Save")) {
+                ImGui::OpenPopup("Save");
+            }
+            if (ImGui::BeginPopupModal("Save", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                ImGui::Text("Please enter a folder name:");
+                static char buffer[128] = "";
+                
+                ImGui::InputTextWithHint("Folder Name", "level_01", buffer, IM_ARRAYSIZE(buffer));
+                ImGui::Separator();
+               
+                if (ImGui::Button("Close"))
+                    ImGui::CloseCurrentPopup();
+                ImGui::SameLine();
+                if (ImGui::Button("Create")) {
+                    std::string savepath = filepath + buffer;
+                    map.save(savepath);
+                    ImGui::CloseCurrentPopup();
+                }
+                
+                ImGui::TextUnformatted(buffer);
+                
+                ImGui::EndPopup();
+            }
+            if (ImGui::BeginPopupModal("Notice", NULL, ImGuiWindowFlags_Modal)) {
+                ImGui::Text("File saved successfully.");
+                if (ImGui::Button("Close"))
+                    ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+            }
+            if (ImGui::BeginPopupModal("Notice: Error", NULL, ImGuiWindowFlags_Modal)) {
+                ImGui::Text("ERROR: File failed to save.");
+                if (ImGui::Button("Close"))
+                    ImGui::CloseCurrentPopup();
+                ImGui::EndPopup();
+            }
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Edit")) {
+            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+            ImGui::Separator();
+            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+    
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -215,9 +291,14 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
     ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
     window_flags |= ImGuiWindowFlags_NoMove;
     
+    
+    
     ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
     if (ImGui::Begin("Debug Mode", debug, window_flags)) {
         ImGui::Text("Pioneer (beta version 1.0.0) - Level Editor");
+        ImGui::Text("Current Save Directory: ");
+        ImGui::SameLine();
+        ImGui::TextUnformatted(filepath.c_str());
         ImGui::Separator();
         if (ImGui::IsMousePosValid()) {
             ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);

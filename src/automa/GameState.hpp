@@ -17,6 +17,7 @@
 #include "../tool/Tool.hpp"
 #include <SFML/OpenGL.hpp>
 #include <imgui-SFML.h>
+#include <sstream>
 
 namespace automa {
 
@@ -108,6 +109,7 @@ public:
     }
     void init(const std::string& load_path) {
         map.load(load_path + "/level/DOJO");
+        filepath = load_path + "/level/";
         tool_texture.loadFromFile(load_path + "/gui/tools.png");
         map.layers.at(canvas::MIDDLEGROUND).active = true;
         for(int i = 0; i < 5; i++) {
@@ -153,6 +155,8 @@ public:
     
     bool show_grid{true};
     bool show_all_layers{true};
+    
+    std::string filepath{};
 };
 
 

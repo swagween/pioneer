@@ -46,68 +46,6 @@ static void show_overlay(bool* debug) {
     
     SM.get_current_state().gui_render(window);
     
-    //Main Menu
-    if (ImGui::BeginMainMenuBar()) {
-        if (ImGui::BeginMenu("File")) {
-            if(ImGui::Button("New")) {
-                ImGui::OpenPopup("New File");
-            }
-            // Always center this window when appearing
-            ImVec2 center(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.5f);
-            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-            if (ImGui::BeginPopupModal("New File", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                ImGui::Text("Choose a region:");
-                // Testing behavior of widgets stacking their own regular popups over the modal.
-                static int item = 1;
-                ImGui::Combo("Region", &item, "Firstwind\0Overturned\0Base\0Grub\0Toxic\0Frozen\0Mansion\0Ice\0Night\0Shadow\0Ashtown\0Snow\0Sky\0Greatwing\0Factory");
-                ImGui::Text("Please enter a file name:");
-                char buffer;
-//                ImGui::InputText("File Name", &buffer, 32);
-                ImGui::InputTextWithHint("File Name", "level_01", &buffer, 32);
-                ImGui::Separator();
-               
-                if (ImGui::Button("Close"))
-                    ImGui::CloseCurrentPopup();
-                ImGui::SameLine();
-                if (ImGui::Button("Create")) {
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndPopup();
-            }
-            if(ImGui::Button("Open")) {}
-            if(ImGui::Button("Save")) {
-                if( true ) {
-                    ImGui::OpenPopup("Notice");
-                } else {
-                    ImGui::OpenPopup("Notice: Error");
-                }
-            }
-            if (ImGui::BeginPopupModal("Notice", NULL, ImGuiWindowFlags_Modal)) {
-                ImGui::Text("File saved successfully.");
-                if (ImGui::Button("Close"))
-                    ImGui::CloseCurrentPopup();
-                ImGui::EndPopup();
-            }
-            if (ImGui::BeginPopupModal("Notice: Error", NULL, ImGuiWindowFlags_Modal)) {
-                ImGui::Text("ERROR: File failed to save.");
-                if (ImGui::Button("Close"))
-                    ImGui::CloseCurrentPopup();
-                ImGui::EndPopup();
-            }
-            ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("Edit")) {
-            if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-            ImGui::Separator();
-            if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-            if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-            if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-            ImGui::EndMenu();
-        }
-        ImGui::EndMainMenuBar();
-    }
     
 }
 

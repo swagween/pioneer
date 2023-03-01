@@ -32,7 +32,7 @@ void Canvas::load(const std::string& path) {
     std::ifstream input{};
     input.open(filepath);
     if (!input.is_open()) {
-        printf("Failed to open file.");
+        printf("Failed to open file.\n");
         return;
     }
     
@@ -42,7 +42,7 @@ void Canvas::load(const std::string& path) {
     input >> value; chunk_dimensions.x = value; input.ignore();
     input >> value; chunk_dimensions.y = value; input.ignore();
     if((dimensions.x / chunk_dimensions.x != CHUNK_SIZE) ||
-       (dimensions.y / chunk_dimensions.y != CHUNK_SIZE)) { printf("File is corrupted: Invalid dimensions."); return; }
+       (dimensions.y / chunk_dimensions.y != CHUNK_SIZE)) { printf("File is corrupted: Invalid dimensions.\n"); return; }
     real_dimensions = {(float)dimensions.x * CELL_SIZE, (float)dimensions.y * CELL_SIZE};
     for(int i = 0; i < NUM_LAYERS; ++i) {
         layers.push_back(Layer( i, (i == MIDDLEGROUND), dimensions ));
@@ -50,12 +50,12 @@ void Canvas::load(const std::string& path) {
     }
     //style
     input >> value; input.ignore();
-    if(value >= lookup::get_style.size()) { printf("File is corrupted: Invalid style."); return; } else {
+    if(value >= lookup::get_style.size()) { printf("File is corrupted: Invalid style.\n"); return; } else {
         style = lookup::get_style.at(value);
     }
     //bg;
     input >> value; input.ignore();
-    if(value >= lookup::get_backdrop.size()) { printf("File is corrupted: Invalid backdrop."); return; } else {
+    if(value >= lookup::get_backdrop.size()) { printf("File is corrupted: Invalid backdrop.\n"); return; } else {
         bg = lookup::get_backdrop.at(value);
     }
     input.close();
@@ -82,41 +82,40 @@ void Canvas::load(const std::string& path) {
     svc::active_layer = MIDDLEGROUND;
 }
 
-void Canvas::save(const std::string& path) {
+bool Canvas::save(const std::string& path) {
     
     std::string filepath = path + "/map_data.txt";
     
     int value{};
     int counter = 0;
-    std::ofstream output{};
-    output.open(path);
+    std::filesystem::create_directory(path);
+    std::ofstream output(filepath);
     if (!output.is_open()) {
-        printf("Failed to open file.");
-        return;
+        return false;
     }
     output << dimensions.x << ", " << dimensions.y << ", "
     << chunk_dimensions.x << ", " << chunk_dimensions.y << ", "
-    << (int)style << ", " << (int)bg;
+    << lookup::get_style_id.at(style) << ", " << lookup::get_backdrop_id.at(bg);
     output.close();
     
-    
-    
     for(auto& layer : layers) {
-        int cell_ctr{};
+        int cell_ctr{0};
         //open map_tiles_[i].txt
-        output.open(path + "/map_tiles_" + std::to_string(counter) + ".txt");
+        std::ofstream tile_output(path + "/map_tiles_" + std::to_string(counter) + ".txt");
+//        output.open(path + "/map_tiles_" + std::to_string(counter) + ".txt");
         for(auto& cell : layer.grid.cells) {
-            output << std::to_string(layer.grid.cells.at(cell_ctr).value) + " ";
+            tile_output << std::to_string(layer.grid.cells.at(cell_ctr).value) + " ";
             
-            output << ", ";
+            tile_output << ", ";
             
             ++cell_ctr;
         }
         layer.grid.update();
         //close the current file
-        output.close();
+        tile_output.close();
         ++counter;
     }
+    return true;
 }
 
 int Canvas::get_active_layer() {

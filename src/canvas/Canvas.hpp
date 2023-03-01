@@ -40,7 +40,7 @@ enum LAYER_ORDER {
 
 enum class STYLE {
     STYLE_NULL,
-    FIRSTWIND = 0,
+    FIRSTWIND,
     OVERTURNED,
     GRUB,
     TOXIC,
@@ -71,7 +71,7 @@ public:
     Canvas();
     Canvas(sf::Vector2<uint16_t> dim);
     void load(const std::string& path);
-    void save(const std::string& path);
+    bool save(const std::string& path);
     int get_active_layer();
     
     void edit_tile_at(int i, int j, int new_val, int layer_index);
