@@ -29,8 +29,8 @@ void Brush::update() {
     tool::Tool::update();
 }
 
-void Brush::set_priority(bool prim) {
-    primary = prim;
+void Brush::render(sf::RenderWindow& win, sf::Vector2<float> offset) {
+    
 }
 
 void Brush::store_tile(int index) {

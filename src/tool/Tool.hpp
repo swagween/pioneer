@@ -28,7 +28,7 @@ public:
     virtual void handle_events(canvas::Canvas& canvas, sf::Event& e) = 0;
     virtual void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key) = 0;
     virtual void update() = 0;
-    virtual void set_priority(bool prim) = 0;
+    virtual void render(sf::RenderWindow& win, sf::Vector2<float> offset) = 0;
     virtual void store_tile(int index) = 0;
     
     bool in_bounds(sf::Vector2<uint16_t>& bounds);
@@ -63,7 +63,7 @@ public:
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
-    void set_priority(bool prim);
+    void render(sf::RenderWindow& win, sf::Vector2<float> offset);
     void store_tile(int index);
 };
 
@@ -73,7 +73,7 @@ public:
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
-    void set_priority(bool prim);
+    void render(sf::RenderWindow& win, sf::Vector2<float> offset);
     void store_tile(int index);
     
 private:
@@ -85,7 +85,7 @@ public:
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
-    void set_priority(bool prim);
+    void render(sf::RenderWindow& win, sf::Vector2<float> offset);
     void store_tile(int index);
     
 private:
@@ -97,7 +97,7 @@ public:
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
-    void set_priority(bool prim);
+    void render(sf::RenderWindow& win, sf::Vector2<float> offset);
     void store_tile(int index);
     
     void fill_section(const uint8_t prev_val, const uint8_t new_val, uint16_t i, uint16_t j, canvas::Canvas& canvas);
@@ -119,9 +119,7 @@ public:
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
-    void render_with_layer_info(const canvas::Layer& layer);
-    void render_selection(const canvas::Layer& layer);
-    void set_priority(bool prim);
+    void render(sf::RenderWindow& win, sf::Vector2<float> offset);
     void store_tile(int index);
     void copy(canvas::Canvas& canvas);
     void paste(canvas::Canvas& canvas);

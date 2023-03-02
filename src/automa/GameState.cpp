@@ -36,6 +36,19 @@ void automa::Editor::init(const std::string &load_path) {
             tileset.back().setTextureRect(sf::IntRect({j * TILE_WIDTH, i * TILE_WIDTH}, {TILE_WIDTH, TILE_WIDTH}));
         }
     }
+    box.setOutlineColor(sf::Color{200, 200, 200, 20});
+    box.setOutlineThickness(-2);
+    box.setSize({canvas::CELL_SIZE, canvas::CELL_SIZE});
+    
+    gridbox.setFillColor(sf::Color::Transparent);
+    gridbox.setOutlineColor(sf::Color{240, 230, 255, 20});
+    gridbox.setOutlineThickness(-1);
+    gridbox.setSize({canvas::CELL_SIZE, canvas::CELL_SIZE});
+    
+    target.setFillColor(sf::Color{110, 90, 200, 80});
+    target.setOutlineColor(sf::Color{240, 230, 255, 100});
+    target.setOutlineThickness(-2);
+    target.setSize({canvas::CELL_SIZE, canvas::CELL_SIZE});
 }
 
 void automa::Editor::setTilesetTexture(sf::Texture& new_tex) {
@@ -188,42 +201,27 @@ void automa::Metagrid::gui_render(sf::RenderWindow& win) {
 }
 
 void automa::Editor::render(sf::RenderWindow &win) {
-    sf::RectangleShape box{};
-    sf::RectangleShape gridbox{};
-    sf::RectangleShape target{};
-    
-    box.setOutlineColor(sf::Color{200, 200, 200, 20});
-    box.setOutlineThickness(-2);
-    box.setSize({canvas::CELL_SIZE, canvas::CELL_SIZE});
-    
-    gridbox.setFillColor(sf::Color::Transparent);
-    gridbox.setOutlineColor(sf::Color{240, 230, 255, 20});
-    gridbox.setOutlineThickness(-1);
-    gridbox.setSize({canvas::CELL_SIZE, canvas::CELL_SIZE});
-    
-    target.setFillColor(sf::Color{110, 90, 200, 80});
-    target.setOutlineColor(sf::Color{240, 230, 255, 100});
-    target.setOutlineThickness(-2);
-    target.setSize({canvas::CELL_SIZE, canvas::CELL_SIZE});
     
     for(auto& layer : map.layers) {
         box.setFillColor(sf::Color{static_cast<uint8_t>(layer.render_order * 30), 230, static_cast<uint8_t>(255 - layer.render_order * 30), 40});
         for(auto& cell : layer.grid.cells) {
+            if(cell.value == 0) { continue; }
             if(layer.render_order == svc::active_layer || show_all_layers) {
                 tileset.at(cell.value).setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
                 win.draw(tileset.at(cell.value));
             } else {
-                if(cell.value > 0) {
-                    box.setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
-                    win.draw(box);
-                }
-            }
-            if(show_grid && layer.render_order == canvas::NUM_LAYERS - 1) { //only do this once, at the end
-                gridbox.setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
-                win.draw(gridbox);
+                box.setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
+                win.draw(box);
             }
         }
     }
+    if(show_grid) {
+        for(auto& cell : map.layers.back().grid.cells) {
+            gridbox.setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
+            win.draw(gridbox);
+        }
+    }
+    
     if(svc::current_tool.get()->ready && svc::current_tool.get()->in_bounds(map.dimensions) &&
        (svc::current_tool.get()->type == tool::TOOL_TYPE::BRUSH ||
        svc::current_tool.get()->type == tool::TOOL_TYPE::FILL ||
@@ -235,6 +233,7 @@ void automa::Editor::render(sf::RenderWindow &win) {
             }
         }
     }
+    svc::current_tool.get()->render(win, svc::cameraLocator.get().physics.position);
     float tool_x = svc::current_tool.get()->position.x + svc::cameraLocator.get().physics.position.x;
     float tool_y = svc::current_tool.get()->position.y + svc::cameraLocator.get().physics.position.y;
     tool_sprites.at(lookup::get_tool_sprite_index.at(svc::current_tool.get()->type)).setPosition(tool_x, tool_y);

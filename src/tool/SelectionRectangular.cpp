@@ -20,7 +20,19 @@ void SelectionRectangular::handle_events(canvas::Canvas& canvas, sf::Event& e) {
                 selection = SelectBox(scaled_clicked_position, {0, 0});
                 just_clicked = false;
             }
-            selection.adjust(scaled_position - selection.position);
+            // I'm being long-winded here to provision for the mouse
+            // being dragged above or left of the clicked position
+            sf::Vector2<uint16_t> adjustment{};
+            if(scaled_position.x > scaled_clicked_position.x) { adjustment.x = scaled_position.x - selection.position.x; } else {
+                adjustment.x = scaled_clicked_position.x - scaled_position.x;
+                selection.position.x = scaled_position.x;
+            }
+            if(scaled_position.y > scaled_clicked_position.y) { adjustment.y = scaled_position.y - selection.position.y; } else {
+                adjustment.y = scaled_clicked_position.y - scaled_position.y;
+                selection.position.y = scaled_position.y;
+            }
+            selection.adjust(adjustment);
+            
         } else {
         }
     }
@@ -40,16 +52,20 @@ void SelectionRectangular::update() {
     tool::Tool::update();
 }
 
-void SelectionRectangular::render_with_layer_info(const canvas::Layer &layer) {
-    render_selection(layer);
-}
-
-void SelectionRectangular::render_selection(const canvas::Layer& layer) {
+void SelectionRectangular::render(sf::RenderWindow& win, sf::Vector2<float> offset) {
+    sf::RectangleShape box{};
     
-}
-
-void SelectionRectangular::set_priority(bool prim) {
-    primary = prim;
+    box.setOutlineColor(sf::Color{200, 200, 200, 80});
+    box.setFillColor(sf::Color{150, 190, 110, 80});
+    box.setOutlineThickness(-2);
+    box.setSize({canvas::CELL_SIZE, canvas::CELL_SIZE});
+    
+    for(int i = 0; i < selection.dimensions.x; ++i) {
+        for(int j = 0; j < selection.dimensions.y; ++j) {
+            box.setPosition(selection.position.x * canvas::CELL_SIZE + i * canvas::CELL_SIZE + offset.x, selection.position.y * canvas::CELL_SIZE + j * canvas::CELL_SIZE + offset.y);
+            win.draw(box);
+        }
+    }
 }
 
 void SelectionRectangular::store_tile(int index) {
@@ -58,8 +74,6 @@ void SelectionRectangular::store_tile(int index) {
 
 void SelectionRectangular::copy(canvas::Canvas& canvas) {
     printf("Copied %u Cells.\n", selection.dimensions.x * selection.dimensions.y);
-    printf("Select Box X Position: %u \n", selection.position.x);
-    printf("Select Box Y Position: %u \n", selection.position.y);
     clipboard.clear_clipboard();
     for(int i = 0; i < selection.dimensions.x; ++i) {
         for(int j = 0; j < selection.dimensions.y; ++j) {
@@ -72,7 +86,9 @@ void SelectionRectangular::paste(canvas::Canvas& canvas) {
     printf("Pasted %u Cells.\n", selection.dimensions.x * selection.dimensions.y);
     for(int i = 0; i < selection.dimensions.x; ++i) {
         for(int j = 0; j < selection.dimensions.y; ++j) {
-            canvas.edit_tile_at(scaled_position.x + i, scaled_position.y + j, clipboard.cell_values.at(j + i * selection.dimensions.y), svc::active_layer);
+            if(scaled_position.x + i < canvas.dimensions.x && scaled_position.y + j < canvas.dimensions.y) {
+                canvas.edit_tile_at(scaled_position.x + i, scaled_position.y + j, clipboard.cell_values.at(j + i * selection.dimensions.y), svc::active_layer);
+            }
         }
     }
 }

@@ -142,6 +142,10 @@ public:
     bool show_all_layers{true};
     
     std::string filepath{};
+    
+    sf::RectangleShape box{};
+    sf::RectangleShape gridbox{};
+    sf::RectangleShape target{};
 };
 
 

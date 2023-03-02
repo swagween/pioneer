@@ -33,8 +33,8 @@ void Hand::update() {
     tool::Tool::update();
 }
 
-void Hand::set_priority(bool prim) {
-    primary = prim;
+void Hand::render(sf::RenderWindow& win, sf::Vector2<float> offset) {
+    
 }
 
 void Hand::store_tile(int index) {

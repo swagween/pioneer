@@ -29,8 +29,8 @@ void Erase::update() {
     tool::Tool::update();
 }
 
-void Erase::set_priority(bool prim) {
-    primary = prim;
+void Erase::render(sf::RenderWindow& win, sf::Vector2<float> offset) {
+    
 }
 
 void Erase::store_tile(int index) {

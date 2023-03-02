@@ -25,6 +25,10 @@ void Fill::update() {
     tool::Tool::update();
 }
 
+void Fill::render(sf::RenderWindow& win, sf::Vector2<float> offset) {
+    
+}
+
 void Fill::fill_section(const uint8_t prev_val, const uint8_t new_val, uint16_t i, uint16_t j, canvas::Canvas& canvas) {
     if(i < 0 || i >= canvas.dimensions.x || j < 0 || j >= canvas.dimensions.y) {
         return;
@@ -42,10 +46,6 @@ void Fill::fill_section(const uint8_t prev_val, const uint8_t new_val, uint16_t 
         fill_section(prev_val, new_val, i, j - 1, canvas);
         
     }
-}
-
-void Fill::set_priority(bool prim) {
-    primary = prim;
 }
 
 void Fill::store_tile(int index) {
