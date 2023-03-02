@@ -126,7 +126,7 @@ void Canvas::edit_tile_at(int i, int j, int new_val, int layer_index) {
 }
 
 int Canvas::tile_val_at(int i, int j, int layer) {
-    
+    return layers.at(layer).grid.cells.at(i + j * dimensions.x).value;
 }
 
 TILE_TYPE Canvas::lookup_type(int idx) {

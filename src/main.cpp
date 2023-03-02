@@ -43,14 +43,10 @@ sf::Color PIONEER_BLUE = sf::Color(85, 173, 232);
 std::string state{};
 
 static void show_overlay(bool* debug) {
-    
     SM.get_current_state().gui_render(window);
-    
-    
 }
 
 const int TIME_STEP_MILLI = 100;
-
 float G = 0.8f;
 
 void run(char** argv) {
@@ -61,27 +57,7 @@ void run(char** argv) {
     
     //load the tilesets!
     sf::Texture t_tiles_provisional{};
-    sf::Texture t_tiles_overturned{};
-    sf::Texture t_tiles_ash{};
-    sf::Texture t_tiles_shadow{};
-    sf::Texture t_tiles_hoarder{};
-    sf::Texture t_tiles_abandoned{};
-    std::vector<sf::Texture> tileset_textures{};
-    for(int i = 0; i < canvas::NUM_STYLES; ++i) {
-        tileset_textures.push_back(sf::Texture());
-        std::string style = lookup::get_style_string.at(lookup::get_style.at(i));
-        tileset_textures.back().loadFromFile(resource_path + "/tile/" + style + "_tiles.png");
-    }
-    
-    std::vector<sf::Sprite> sp_tileset;
-    for(int i = 0; i < 16; ++i) {
-        for(int j = 0; j < 16; ++j) {
-            sp_tileset.push_back(sf::Sprite());
-            //do all tilesets in this loop
-            sp_tileset.back().setTexture(t_tiles_shadow);
-            sp_tileset.back().setTextureRect(sf::IntRect({j * TILE_WIDTH, i * TILE_WIDTH}, {TILE_WIDTH, TILE_WIDTH}));
-        }
-    }
+    t_tiles_provisional.loadFromFile(resource_path + "/tile/provisional_tiles.png");
     
     SM.set_current_state(std::make_unique<automa::Metagrid>());
     
@@ -114,9 +90,8 @@ void run(char** argv) {
         start = now;
         elapsed_time += dt;
         
-        //SFML event variable
         auto event = sf::Event{};
-        //check window events
+        
         while (window.pollEvent(event)) {
             ImGui::SFML::ProcessEvent(event);
             switch(event.type) {
@@ -124,7 +99,6 @@ void run(char** argv) {
                     lookup::get_state_string.clear();
                     return;
                 case sf::Event::KeyPressed:
-                    //player can refresh grid by pressing 'Z'
                     if(event.key.code == sf::Keyboard::Escape) {
                         return;
                     }
@@ -146,7 +120,7 @@ void run(char** argv) {
                     if(event.key.code == sf::Keyboard::Enter) {
                         SM.set_current_state(std::make_unique<automa::Editor>());
                         SM.get_current_state().init(resource_path);
-                        SM.get_current_state().setTilesetTexture(t_tiles_shadow);
+                        SM.get_current_state().setTilesetTexture(t_tiles_provisional);
                     }
                     if(event.key.code == sf::Keyboard::Equal) {
                         SM.set_current_state(std::make_unique<automa::Metagrid>());
@@ -175,8 +149,6 @@ void run(char** argv) {
         window.draw(background);
         
         SM.get_current_state().render(window);
-//        sp_tileset_provisional.at(1).setPosition(100, 100);
-//        window.draw(sp_tileset_provisional.at(1));
         
         //draw canvas here
         

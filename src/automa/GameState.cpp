@@ -49,7 +49,7 @@ void automa::Editor::setTilesetTexture(sf::Texture& new_tex) {
 }
 
 
-void automa::Editor::handle_events(sf::Event event, sf::RenderWindow &win) {
+void automa::Editor::handle_events(sf::Event& event, sf::RenderWindow &win) {
     svc::current_tool.get()->ready = true;
     svc::secondary_tool.get()->ready = true;
     if(event.type == sf::Event::EventType::KeyPressed) {
@@ -66,6 +66,12 @@ void automa::Editor::handle_events(sf::Event event, sf::RenderWindow &win) {
         }
         if (event.key.code == sf::Keyboard::D) {
             slide_right = true;
+        }
+        if (event.key.code == sf::Keyboard::C) {
+            svc::current_tool.get()->handle_keyboard_events(map, event.key.code);
+        }
+        if (event.key.code == sf::Keyboard::V) {
+            svc::current_tool.get()->handle_keyboard_events(map, event.key.code);
         }
     }
     if(event.type == sf::Event::EventType::KeyReleased) {
@@ -93,6 +99,7 @@ void automa::Editor::handle_events(sf::Event event, sf::RenderWindow &win) {
         svc::current_tool.get()->active = false;
         svc::current_tool.get()->just_clicked = true;
         svc::current_tool.get()->clicked_position = {0.0f, 0.0f};
+        svc::current_tool.get()->scaled_clicked_position = {0, 0};
         svc::current_tool.get()->relative_position = {0.0f, 0.0f};
     }
     if(sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
@@ -102,7 +109,12 @@ void automa::Editor::handle_events(sf::Event event, sf::RenderWindow &win) {
         svc::secondary_tool.get()->active = false;
         svc::secondary_tool.get()->just_clicked = true;
         svc::secondary_tool.get()->clicked_position = {0.0f, 0.0f};
+        svc::secondary_tool.get()->scaled_clicked_position = {0, 0};
         svc::secondary_tool.get()->relative_position = {0.0f, 0.0f};
+    }
+    //select tool gets special treatment, because it can be used without the mouse being pressed (copy/paste)
+    if(svc::current_tool.get()->type == tool::TOOL_TYPE::SELECT) {
+        svc::current_tool.get()->handle_events(map, event);
     }
 }
 
@@ -198,12 +210,8 @@ void automa::Editor::render(sf::RenderWindow &win) {
         box.setFillColor(sf::Color{static_cast<uint8_t>(layer.render_order * 30), 230, static_cast<uint8_t>(255 - layer.render_order * 30), 40});
         for(auto& cell : layer.grid.cells) {
             if(layer.render_order == svc::active_layer || show_all_layers) {
-                try {
-                    tileset.at(cell.value).setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
-                    win.draw(tileset.at(cell.value));
-                } catch(std::out_of_range) {
-                    printf("Current style is out of range.\n");
-                }
+                tileset.at(cell.value).setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
+                win.draw(tileset.at(cell.value));
             } else {
                 if(cell.value > 0) {
                     box.setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
@@ -216,7 +224,7 @@ void automa::Editor::render(sf::RenderWindow &win) {
             }
         }
     }
-    if(svc::current_tool.get()->ready && svc::current_tool.get()->in_bounds(map.real_dimensions) &&
+    if(svc::current_tool.get()->ready && svc::current_tool.get()->in_bounds(map.dimensions) &&
        (svc::current_tool.get()->type == tool::TOOL_TYPE::BRUSH ||
        svc::current_tool.get()->type == tool::TOOL_TYPE::FILL ||
        svc::current_tool.get()->type == tool::TOOL_TYPE::ERASE)) {
@@ -341,7 +349,6 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
     ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
     if (ImGui::Begin("Debug Mode", debug, window_flags)) {
         ImGui::Text("Pioneer (beta version 1.0.0) - Level Editor");
-        ImGui::Text("Current Save Directory: %s", filepath.c_str());
         ImGui::Separator();
         if (ImGui::IsMousePosValid()) {
             ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
@@ -357,6 +364,9 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
                 ImGui::Text("Active Layer: %i", svc::active_layer);
                 ImGui::Text("Num Layers: %lu", map.layers.size());
                 ImGui::Text("Stored Tile Value: %u", svc::current_tool.get()->tile);
+                if(svc::current_tool.get()->in_bounds(map.dimensions)) {
+                    ImGui::Text("Tile Value at Mouse Pos: %u", map.tile_val_at(svc::current_tool.get()->scaled_position.x, svc::current_tool.get()->scaled_position.y, svc::active_layer));
+                }
                 ImGui::Separator();
                 ImGui::Text("Current State: %s", lookup::get_state_string.at(state).c_str());
                 ImGui::Text("Current Style: %s", lookup::get_style_string.at(map.style));
@@ -368,8 +378,9 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
                 ImGui::Text("Clicked Position: (%.1f,%.1f)", svc::current_tool.get()->clicked_position.x, svc::current_tool.get()->clicked_position.y);
                 ImGui::Text("Relative Position: (%.1f,%.1f)", svc::current_tool.get()->relative_position.x, svc::current_tool.get()->relative_position.y);
                 ImGui::Text("Tool Position (scaled): (%i,%i)", svc::current_tool.get()->scaled_position.x, svc::current_tool.get()->scaled_position.y);
+                ImGui::Text("Tool Clicked Position (scaled): (%i,%i)", svc::current_tool.get()->scaled_clicked_position.x, svc::current_tool.get()->scaled_clicked_position.y);
                 ImGui::Text("Tool in Bounds: "); ImGui::SameLine();
-                if(svc::current_tool.get()->in_bounds(map.real_dimensions)) { ImGui::Text("Yes"); } else { ImGui::Text("No"); };
+                if(svc::current_tool.get()->in_bounds(map.dimensions)) { ImGui::Text("Yes"); } else { ImGui::Text("No"); };
                 ImGui::Text("Tool Ready: "); ImGui::SameLine();
                 if(svc::current_tool.get()->ready) { ImGui::Text("Yes"); } else { ImGui::Text("No"); };
                 ImGui::Text("Tool Active: "); ImGui::SameLine();
@@ -467,11 +478,7 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
         static int style_current = lookup::get_style_id.at(map.style);
         if(ImGui::Combo("##scenestyle", &style_current, styles, IM_ARRAYSIZE(styles))) {
             map.style = lookup::get_style.at(style_current);
-            try {
-                setTilesetTexture(tileset_textures.at(style_current));
-            } catch(std::out_of_range) {
-                printf("Style out of range.\n");
-            }
+            setTilesetTexture(tileset_textures.at(style_current));
         }
         prev_window_size = ImGui::GetWindowSize();
         prev_window_pos = ImGui::GetWindowPos();

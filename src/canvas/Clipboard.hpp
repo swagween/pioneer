@@ -19,13 +19,12 @@ public:
     
     Clipboard();
     
-    void write_to_clipboard(std::vector<Tile>& selection);
+    void write_to_clipboard(std::vector<uint8_t>& selection);
     void clear_clipboard();
-    uint16_t get_value_at(uint16_t i, uint16_t j, uint16_t idx);
+    uint8_t get_value_at(uint16_t i, uint16_t j);
     
     sf::Vector2<uint16_t> dimensions{};
-    
-    std::vector<Tile> cells;
+    std::vector<uint8_t> cell_values;
     
 };
 

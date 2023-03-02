@@ -57,7 +57,7 @@ public:
     
     virtual void init(const std::string& load_path) {}
     virtual void setTilesetTexture(sf::Texture tile_texture) {}
-    virtual void handle_events(sf::Event event, sf::RenderWindow& win) {}
+    virtual void handle_events(sf::Event& event, sf::RenderWindow& win) {}
     virtual void logic() {}
     virtual void render(sf::RenderWindow& win) {}
     virtual void gui_render(sf::RenderWindow& win) {}
@@ -82,7 +82,7 @@ public:
     }
     void setTilesetTexture(sf::Texture tile_texture) {
     }
-    void handle_events(sf::Event event, sf::RenderWindow& win) {
+    void handle_events(sf::Event& event, sf::RenderWindow& win) {
         
         if (event.type == sf::Event::EventType::KeyPressed) {
         }
@@ -116,7 +116,7 @@ public:
     
     void setTilesetTexture(sf::Texture& new_tex);
     
-    void handle_events(sf::Event event, sf::RenderWindow& win);
+    void handle_events(sf::Event& event, sf::RenderWindow& win);
     
     void logic();
     
@@ -125,16 +125,14 @@ public:
     void gui_render(sf::RenderWindow& win);
     
     canvas::Canvas map{};
-    sf::Texture tileset_texture{};
     std::vector<sf::Texture> tileset_textures{};
     std::vector<sf::Sprite> tileset{};
-    
     sf::Texture tool_texture{};
     std::vector<sf::Sprite> tool_sprites{};
     
-    bool mouse_held{};
     sf::Vector2<float> mouse_clicked_position{};
     
+    bool mouse_held{};
     bool slide_left{};
     bool slide_right{};
     bool slide_up{};

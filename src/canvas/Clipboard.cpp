@@ -12,17 +12,17 @@ namespace canvas {
 Clipboard::Clipboard() {
 }
 
-void Clipboard::write_to_clipboard(std::vector<Tile>& selection) {
-    cells = selection;
+void Clipboard::write_to_clipboard(std::vector<uint8_t>& selection) {
+    cell_values = selection;
 }
 
 void Clipboard::clear_clipboard() {
-    cells.clear();
+    cell_values.clear();
 }
 
-uint16_t Clipboard::get_value_at(uint16_t i, uint16_t j, uint16_t idx) {
-    assert(i + j * dimensions.x < cells.size());
-    return cells.at(i + j * dimensions.x).value;
+uint8_t Clipboard::get_value_at(uint16_t i, uint16_t j) {
+    assert(i + j * dimensions.x < cell_values.size());
+    return cell_values.at(i + j * dimensions.x);
 }
 
 }

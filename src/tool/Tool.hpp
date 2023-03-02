@@ -26,18 +26,13 @@ public:
     
     Tool& operator=(const Tool&) = delete;
     virtual void handle_events(canvas::Canvas& canvas, sf::Event& e) = 0;
+    virtual void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key) = 0;
     virtual void update() = 0;
-//    virtual void render() = 0;
-//    virtual void render_with_layer_info(const canvas::Layer& layer);
     virtual void set_priority(bool prim) = 0;
     virtual void store_tile(int index) = 0;
     
-    bool in_bounds(sf::Vector2<float>& bounds);
+    bool in_bounds(sf::Vector2<uint16_t>& bounds);
     
-    void set_size(int new_size);
-    int get_size();
-    
-    int value = 0;
     bool active{};
     bool ready{};
     bool just_clicked = true;
@@ -45,7 +40,8 @@ public:
     sf::Vector2<float> position{};
     sf::Vector2<float> clicked_position{};
     sf::Vector2<float> relative_position{};
-    sf::Vector2<int> scaled_position{};
+    sf::Vector2<uint16_t> scaled_position{};
+    sf::Vector2<uint16_t> scaled_clicked_position{};
     
     int xorigin;
     int yorigin;
@@ -55,7 +51,7 @@ public:
     int size = 1;
     
     bool primary{};
-    uint16_t tile{};
+    uint8_t tile{};
     
     TOOL_TYPE type{};
     
@@ -65,6 +61,7 @@ class Hand : public Tool {
 public:
     Hand() { type = TOOL_TYPE::HAND; }
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
+    void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
     void set_priority(bool prim);
     void store_tile(int index);
@@ -74,6 +71,7 @@ class Brush : public Tool {
 public:
     Brush() { type = TOOL_TYPE::BRUSH; }
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
+    void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
     void set_priority(bool prim);
     void store_tile(int index);
@@ -85,6 +83,7 @@ class Erase : public Tool {
 public:
     Erase() { type = TOOL_TYPE::ERASE; }
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
+    void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
     void set_priority(bool prim);
     void store_tile(int index);
@@ -96,19 +95,19 @@ class Fill : public Tool {
 public:
     Fill() { type = TOOL_TYPE::FILL; };
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
+    void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
     void set_priority(bool prim);
     void store_tile(int index);
     
-    void fill_section(int prev_val, const int new_val, int i, int j, canvas::Canvas& canvas);
-    uint16_t tile{};
+    void fill_section(const uint8_t prev_val, const uint8_t new_val, uint16_t i, uint16_t j, canvas::Canvas& canvas);
 };
 
 struct SelectBox {
     SelectBox() = default;
     SelectBox(sf::Vector2<uint16_t> pos, sf::Vector2<uint16_t> dim) : position(pos), dimensions(dim) {}
     void clear() { position = {0, 0}; dimensions = {0, 0}; }
-    void adjust(sf::Vector2<uint16_t> adjustment) { dimensions += adjustment; }
+    void adjust(sf::Vector2<uint16_t> adjustment) { dimensions = adjustment; }
     sf::Vector2<uint16_t> position{};
     sf::Vector2<uint16_t> dimensions{};
 };
@@ -118,11 +117,14 @@ public:
     
     SelectionRectangular() { type = TOOL_TYPE::SELECT; }
     void handle_events(canvas::Canvas& canvas, sf::Event& e);
+    void handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key);
     void update();
     void render_with_layer_info(const canvas::Layer& layer);
     void render_selection(const canvas::Layer& layer);
     void set_priority(bool prim);
     void store_tile(int index);
+    void copy(canvas::Canvas& canvas);
+    void paste(canvas::Canvas& canvas);
     
 private:
     

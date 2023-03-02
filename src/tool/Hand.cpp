@@ -25,10 +25,12 @@ void Hand::handle_events(canvas::Canvas& canvas, sf::Event& e) {
     update();
 }
 
+void Hand::handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key) {
+    
+}
+
 void Hand::update() {
-    int posx = (int)position.x/canvas::CELL_SIZE;
-    int posy = (int)position.y/canvas::CELL_SIZE;
-    scaled_position = sf::Vector2<int>{posx, posy};
+    tool::Tool::update();
 }
 
 void Hand::set_priority(bool prim) {

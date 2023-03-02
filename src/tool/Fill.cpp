@@ -11,25 +11,30 @@
 namespace tool {
 
 void Fill::handle_events(canvas::Canvas& canvas, sf::Event& e) {
+    if(in_bounds(canvas.dimensions) && ready) {
+        fill_section(canvas.tile_val_at(scaled_position.x, scaled_position.y, svc::active_layer), tile, scaled_position.x, scaled_position.y, canvas);
+    }
+    update();
+}
+
+void Fill::handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key) {
     
 }
 
 void Fill::update() {
-    int posx = (int)position.x/canvas::CELL_SIZE;
-    int posy = (int)position.y/canvas::CELL_SIZE;
-    scaled_position = sf::Vector2<int>{posx, posy};
+    tool::Tool::update();
 }
 
-void Fill::fill_section(int prev_val, const int new_val, int i, int j, canvas::Canvas& canvas) {
+void Fill::fill_section(const uint8_t prev_val, const uint8_t new_val, uint16_t i, uint16_t j, canvas::Canvas& canvas) {
     if(i < 0 || i >= canvas.dimensions.x || j < 0 || j >= canvas.dimensions.y) {
         return;
-    } else if(canvas.tile_val_at(j, i, canvas.get_active_layer()) != prev_val) {
+    } else if(canvas.tile_val_at(i, j, svc::active_layer) != prev_val) {
         return;
-    } else if(canvas.tile_val_at(j, i, canvas.get_active_layer()) == new_val) {
+    } else if(canvas.tile_val_at(i, j, svc::active_layer) == new_val) {
         return;
     } else {
         
-        canvas.edit_tile_at(j, i, new_val, svc::active_layer);
+        canvas.edit_tile_at(i, j, new_val, svc::active_layer);
         
         fill_section(prev_val, new_val, i + 1, j, canvas);
         fill_section(prev_val, new_val, i - 1, j, canvas);

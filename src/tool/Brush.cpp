@@ -7,12 +7,11 @@
 
 #include "Tool.hpp"
 #include "../util/ServiceLocator.hpp"
-#include <imgui.h>
 
 namespace tool {
 
 void Brush::handle_events(canvas::Canvas& canvas, sf::Event& e) {
-    if(in_bounds(canvas.real_dimensions) && ready) {
+    if(in_bounds(canvas.dimensions) && ready) {
         for(int i = 0; i < size; i++) {
             for(int j = 0; j < size; j++) {
                 canvas.edit_tile_at(scaled_position.x - i, scaled_position.y - j, tile, svc::active_layer);
@@ -22,10 +21,12 @@ void Brush::handle_events(canvas::Canvas& canvas, sf::Event& e) {
     update();
 }
 
+void Brush::handle_keyboard_events(canvas::Canvas& canvas, sf::Keyboard::Key& key) {
+    
+}
+
 void Brush::update() {
-    int posx = (int)position.x/canvas::CELL_SIZE;
-    int posy = (int)position.y/canvas::CELL_SIZE;
-    scaled_position = sf::Vector2<int>{posx, posy};
+    tool::Tool::update();
 }
 
 void Brush::set_priority(bool prim) {
