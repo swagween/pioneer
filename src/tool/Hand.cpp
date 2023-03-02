@@ -10,7 +10,7 @@
 
 namespace tool {
 
-void Hand::handle_events(canvas::Canvas& canvas, sf::Event e) {
+void Hand::handle_events(canvas::Canvas& canvas, sf::Event& e) {
     if(ready) {
         if(just_clicked) {
             clicked_position = position;

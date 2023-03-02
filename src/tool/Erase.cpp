@@ -11,7 +11,7 @@
 
 namespace tool {
 
-void Erase::handle_events(canvas::Canvas& canvas, sf::Event e) {
+void Erase::handle_events(canvas::Canvas& canvas, sf::Event& e) {
     if(in_bounds(canvas.real_dimensions) && ready) {
         for(int i = 0; i < size; i++) {
             for(int j = 0; j < size; j++) {

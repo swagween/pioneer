@@ -25,7 +25,7 @@ class Tool {
 public:
     
     Tool& operator=(const Tool&) = delete;
-    virtual void handle_events(canvas::Canvas& canvas, sf::Event e) = 0;
+    virtual void handle_events(canvas::Canvas& canvas, sf::Event& e) = 0;
     virtual void update() = 0;
 //    virtual void render() = 0;
 //    virtual void render_with_layer_info(const canvas::Layer& layer);
@@ -64,7 +64,7 @@ public:
 class Hand : public Tool {
 public:
     Hand() { type = TOOL_TYPE::HAND; }
-    void handle_events(canvas::Canvas& canvas, sf::Event e);
+    void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void update();
     void set_priority(bool prim);
     void store_tile(int index);
@@ -73,7 +73,7 @@ public:
 class Brush : public Tool {
 public:
     Brush() { type = TOOL_TYPE::BRUSH; }
-    void handle_events(canvas::Canvas& canvas, sf::Event e);
+    void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void update();
     void set_priority(bool prim);
     void store_tile(int index);
@@ -84,7 +84,7 @@ private:
 class Erase : public Tool {
 public:
     Erase() { type = TOOL_TYPE::ERASE; }
-    void handle_events(canvas::Canvas& canvas, sf::Event e);
+    void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void update();
     void set_priority(bool prim);
     void store_tile(int index);
@@ -95,7 +95,7 @@ private:
 class Fill : public Tool {
 public:
     Fill() { type = TOOL_TYPE::FILL; };
-    void handle_events(canvas::Canvas& canvas, sf::Event e);
+    void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void update();
     void set_priority(bool prim);
     void store_tile(int index);
@@ -117,7 +117,7 @@ class SelectionRectangular : public Tool {
 public:
     
     SelectionRectangular() { type = TOOL_TYPE::SELECT; }
-    void handle_events(canvas::Canvas& canvas, sf::Event e);
+    void handle_events(canvas::Canvas& canvas, sf::Event& e);
     void update();
     void render_with_layer_info(const canvas::Layer& layer);
     void render_selection(const canvas::Layer& layer);

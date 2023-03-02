@@ -8,6 +8,47 @@
 #include "GameState.hpp"
 #include "../util/Lookup.hpp"
 
+void automa::Editor::init(const std::string &load_path) {
+    map.load(load_path + "/level/DOJO");
+    filepath = load_path + "/level/";
+    tool_texture.loadFromFile(load_path + "/gui/tools.png");
+    map.layers.at(canvas::MIDDLEGROUND).active = true;
+    for(int i = 0; i < 5; i++) {
+        tool_sprites.push_back(sf::Sprite());
+        tool_sprites.back().setTexture(tool_texture);
+        tool_sprites.back().setTextureRect(sf::IntRect({i * 32, 0}, {32, 32}));
+    }
+    for(int i = 0; i < canvas::NUM_STYLES; ++i) {
+        const char* next = lookup::get_style_string.at(lookup::get_style.at(i));
+        styles[i] = next;
+    }
+    for(int i = 0; i < canvas::NUM_STYLES; ++i) {
+        tileset_textures.push_back(sf::Texture());
+        std::string style = lookup::get_style_string.at(lookup::get_style.at(i));
+        tileset_textures.back().loadFromFile(load_path + "/tile/" + style + "_tiles.png");
+    }
+    
+    for(int i = 0; i < 16; ++i) {
+        for(int j = 0; j < 16; ++j) {
+            tileset.push_back(sf::Sprite());
+            //do all tilesets in this loop
+            tileset.back().setTexture(tileset_textures.at(lookup::get_style_id.at(map.style)));
+            tileset.back().setTextureRect(sf::IntRect({j * TILE_WIDTH, i * TILE_WIDTH}, {TILE_WIDTH, TILE_WIDTH}));
+        }
+    }
+}
+
+void automa::Editor::setTilesetTexture(sf::Texture& new_tex) {
+    for(int i = 0; i < 16; ++i) {
+        for(int j = 0; j < 16; ++j) {
+            //do all tilesets in this loop
+            tileset.at(j + i * 16).setTexture(new_tex);
+            tileset.at(j + i * 16).setTextureRect(sf::IntRect({j * TILE_WIDTH, i * TILE_WIDTH}, {TILE_WIDTH, TILE_WIDTH}));
+        }
+    }
+}
+
+
 void automa::Editor::handle_events(sf::Event event, sf::RenderWindow &win) {
     svc::current_tool.get()->ready = true;
     svc::secondary_tool.get()->ready = true;
@@ -157,8 +198,12 @@ void automa::Editor::render(sf::RenderWindow &win) {
         box.setFillColor(sf::Color{static_cast<uint8_t>(layer.render_order * 30), 230, static_cast<uint8_t>(255 - layer.render_order * 30), 40});
         for(auto& cell : layer.grid.cells) {
             if(layer.render_order == svc::active_layer || show_all_layers) {
-                tileset.at(cell.value).setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
-                win.draw(tileset.at(cell.value));
+                try {
+                    tileset.at(cell.value).setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
+                    win.draw(tileset.at(cell.value));
+                } catch(std::out_of_range) {
+                    printf("Current style is out of range.\n");
+                }
             } else {
                 if(cell.value > 0) {
                     box.setPosition(cell.position.x + svc::cameraLocator.get().physics.position.x, cell.position.y + svc::cameraLocator.get().physics.position.y);
@@ -211,8 +256,8 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
             if (ImGui::BeginPopupModal("New File", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
                 ImGui::Text("Choose a region:");
                 // Testing behavior of widgets stacking their own regular popups over the modal.
-                static int item = 1;
-                ImGui::Combo("Region", &item, "Firstwind\0Overturned\0Base\0Grub\0Toxic\0Frozen\0Mansion\0Ice\0Night\0Shadow\0Ashtown\0Snow\0Sky\0Greatwing\0Factory");
+                static int item = 1;;
+                ImGui::Combo("Region", &item, styles, IM_ARRAYSIZE(styles));
                 ImGui::Text("Please enter a file name:");
                 char buffer{};
                 ImGui::InputTextWithHint("File Name", "level_01", &buffer, (size_t)32);
@@ -264,9 +309,9 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
             }
             ImGui::EndMenu();
         }
+        //none of the below have been implemented and will likely be removed
         if (ImGui::BeginMenu("Edit")) {
             if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-            if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
             ImGui::Separator();
             if (ImGui::MenuItem("Cut", "CTRL+X")) {}
             if (ImGui::MenuItem("Copy", "CTRL+C")) {}
@@ -279,7 +324,7 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
+    ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar
     ImVec2 work_size = viewport->WorkSize;
     ImVec2 window_pos, window_pos_pivot;
     ImVec2 prev_window_pos{};
@@ -296,39 +341,55 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
     ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
     if (ImGui::Begin("Debug Mode", debug, window_flags)) {
         ImGui::Text("Pioneer (beta version 1.0.0) - Level Editor");
-        ImGui::Text("Current Save Directory: ");
-        ImGui::SameLine();
-        ImGui::TextUnformatted(filepath.c_str());
+        ImGui::Text("Current Save Directory: %s", filepath.c_str());
         ImGui::Separator();
         if (ImGui::IsMousePosValid()) {
             ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
         } else {
             ImGui::Text("Mouse Position: <invalid>");
         }
-        ImGui::Text("Camera Position: (%.1f,%.1f)", svc::cameraLocator.get().physics.position.x, svc::cameraLocator.get().physics.position.y);
-        ImGui::Text("Tool Position: (%.1f,%.1f)", svc::current_tool.get()->position.x, svc::current_tool.get()->position.y);
-        ImGui::Text("Clicked Position: (%.1f,%.1f)", svc::current_tool.get()->clicked_position.x, svc::current_tool.get()->clicked_position.y);
-        ImGui::Text("Relative Position: (%.1f,%.1f)", svc::current_tool.get()->relative_position.x, svc::current_tool.get()->relative_position.y);
-        ImGui::Text("Tool Position (scaled): (%i,%i)", svc::current_tool.get()->scaled_position.x, svc::current_tool.get()->scaled_position.y);
-        ImGui::Text("Active Layer: %i", svc::active_layer);
-        ImGui::Text("Tool in Bounds: "); ImGui::SameLine();
-        if(svc::current_tool.get()->in_bounds(map.real_dimensions)) { ImGui::Text("Yes"); } else { ImGui::Text("No"); };
-        ImGui::Text("Tool Ready: "); ImGui::SameLine();
-        if(svc::current_tool.get()->ready) { ImGui::Text("Yes"); } else { ImGui::Text("No"); };
-        ImGui::Text("Tool Active: "); ImGui::SameLine();
-        if(svc::current_tool.get()->active) { ImGui::Text("Yes"); } else { ImGui::Text("No"); };
-        ImGui::Text("Num Layers: %lu", map.layers.size());
-        ImGui::Text("Stored Tile Value: %u", svc::current_tool.get()->tile);
-        ImGui::Separator();
-        ImGui::Text("Current State: ");
-        ImGui::SameLine();
-        ImGui::TextUnformatted(lookup::get_state_string.at(state).c_str());
-        ImGui::Text("Current Tool: ");
-        ImGui::SameLine();
-        ImGui::TextUnformatted(lookup::get_tool_string.at(svc::current_tool->type).c_str());
-        ImGui::Text("Secondary Tool: ");
-        ImGui::SameLine();
-        ImGui::TextUnformatted(lookup::get_tool_string.at(svc::secondary_tool->type).c_str());
+        ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+        if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
+        {
+            if (ImGui::BeginTabItem("General"))
+            {
+                ImGui::Text("Camera Position: (%.1f,%.1f)", svc::cameraLocator.get().physics.position.x, svc::cameraLocator.get().physics.position.y);
+                ImGui::Text("Active Layer: %i", svc::active_layer);
+                ImGui::Text("Num Layers: %lu", map.layers.size());
+                ImGui::Text("Stored Tile Value: %u", svc::current_tool.get()->tile);
+                ImGui::Separator();
+                ImGui::Text("Current State: %s", lookup::get_state_string.at(state).c_str());
+                ImGui::Text("Current Style: %s", lookup::get_style_string.at(map.style));
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Tool"))
+            {
+                ImGui::Text("Tool Position: (%.1f,%.1f)", svc::current_tool.get()->position.x, svc::current_tool.get()->position.y);
+                ImGui::Text("Clicked Position: (%.1f,%.1f)", svc::current_tool.get()->clicked_position.x, svc::current_tool.get()->clicked_position.y);
+                ImGui::Text("Relative Position: (%.1f,%.1f)", svc::current_tool.get()->relative_position.x, svc::current_tool.get()->relative_position.y);
+                ImGui::Text("Tool Position (scaled): (%i,%i)", svc::current_tool.get()->scaled_position.x, svc::current_tool.get()->scaled_position.y);
+                ImGui::Text("Tool in Bounds: "); ImGui::SameLine();
+                if(svc::current_tool.get()->in_bounds(map.real_dimensions)) { ImGui::Text("Yes"); } else { ImGui::Text("No"); };
+                ImGui::Text("Tool Ready: "); ImGui::SameLine();
+                if(svc::current_tool.get()->ready) { ImGui::Text("Yes"); } else { ImGui::Text("No"); };
+                ImGui::Text("Tool Active: "); ImGui::SameLine();
+                if(svc::current_tool.get()->active) { ImGui::Text("Yes"); } else { ImGui::Text("No"); };
+                
+                ImGui::Text("Current Tool: %s", lookup::get_tool_string.at(svc::current_tool->type).c_str());
+                ImGui::Text("Secondary Tool: %s", lookup::get_tool_string.at(svc::secondary_tool->type).c_str());
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Resources"))
+            {
+                ImGui::Text("Size of Canvas (Bytes): %lu", sizeof(map));
+                ImGui::Text("Size of Tileset (Bytes): %lu", sizeof(tileset_textures));
+                ImGui::Text("Size of Tileset Spritesheet (Bytes): %lu", sizeof(tileset));
+                ImGui::Text("Size of Filepath (Bytes): %lu", sizeof(filepath));
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+        
         prev_window_size = ImGui::GetWindowSize();
         ImGui::End();
     }
@@ -400,8 +461,18 @@ void automa::Editor::gui_render(sf::RenderWindow& win) {
         ImGui::Text("Settings");
         ImGui::Checkbox("Show Grid", &show_grid);
         ImGui::Checkbox("Show All Layers", &show_all_layers);
-        ImGui::Text("Active Layer:");
+        ImGui::Text("Active Layer: ");
         ImGui::SliderInt("##activelr", &svc::active_layer, 0, 7);
+        ImGui::Text("Scene Style: ");
+        static int style_current = lookup::get_style_id.at(map.style);
+        if(ImGui::Combo("##scenestyle", &style_current, styles, IM_ARRAYSIZE(styles))) {
+            map.style = lookup::get_style.at(style_current);
+            try {
+                setTilesetTexture(tileset_textures.at(style_current));
+            } catch(std::out_of_range) {
+                printf("Style out of range.\n");
+            }
+        }
         prev_window_size = ImGui::GetWindowSize();
         prev_window_pos = ImGui::GetWindowPos();
         ImGui::End();

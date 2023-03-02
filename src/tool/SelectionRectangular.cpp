@@ -9,7 +9,7 @@
 
 namespace tool {
 
-void SelectionRectangular::handle_events(canvas::Canvas& canvas, sf::Event e) {
+void SelectionRectangular::handle_events(canvas::Canvas& canvas, sf::Event& e) {
     //    if(event_type = mouse_button_down && active) {
     //get mnouse state
     //adjust

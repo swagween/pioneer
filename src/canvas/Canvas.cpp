@@ -62,7 +62,6 @@ void Canvas::load(const std::string& path) {
     
     //get map tiles from text files
     for(auto& layer : layers) {
-        //open map_tiles_[i].txt
         input.open(path + "/map_tiles_" + std::to_string(counter) + ".txt");
         for(auto& cell : layer.grid.cells) {
             input >> value;
@@ -100,9 +99,7 @@ bool Canvas::save(const std::string& path) {
     
     for(auto& layer : layers) {
         int cell_ctr{0};
-        //open map_tiles_[i].txt
         std::ofstream tile_output(path + "/map_tiles_" + std::to_string(counter) + ".txt");
-//        output.open(path + "/map_tiles_" + std::to_string(counter) + ".txt");
         for(auto& cell : layer.grid.cells) {
             tile_output << std::to_string(layer.grid.cells.at(cell_ctr).value) + " ";
             

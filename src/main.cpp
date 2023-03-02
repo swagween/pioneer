@@ -66,23 +66,20 @@ void run(char** argv) {
     sf::Texture t_tiles_shadow{};
     sf::Texture t_tiles_hoarder{};
     sf::Texture t_tiles_abandoned{};
-    t_tiles_provisional.loadFromFile(resource_path + "/tile/provisional_tiles.png");
-    t_tiles_shadow.loadFromFile(resource_path + "/tile/shadow_tiles.png");
-    t_tiles_ash.loadFromFile(resource_path + "/tile/ash_tiles.png");
-    t_tiles_hoarder.loadFromFile(resource_path + "/tile/hoarder_tiles.png");
+    std::vector<sf::Texture> tileset_textures{};
+    for(int i = 0; i < canvas::NUM_STYLES; ++i) {
+        tileset_textures.push_back(sf::Texture());
+        std::string style = lookup::get_style_string.at(lookup::get_style.at(i));
+        tileset_textures.back().loadFromFile(resource_path + "/tile/" + style + "_tiles.png");
+    }
     
-    std::vector<sf::Sprite> sp_tileset_provisional{};
-    std::vector<sf::Sprite> sp_tileset_shadow{};
-    std::vector<sf::Sprite> sp_tileset_abandoned{};
+    std::vector<sf::Sprite> sp_tileset;
     for(int i = 0; i < 16; ++i) {
         for(int j = 0; j < 16; ++j) {
-            sp_tileset_provisional.push_back(sf::Sprite());
-            sp_tileset_shadow.push_back(sf::Sprite());
+            sp_tileset.push_back(sf::Sprite());
             //do all tilesets in this loop
-            sp_tileset_provisional.back().setTexture(t_tiles_provisional);
-            sp_tileset_shadow.back().setTexture(t_tiles_shadow);
-            sp_tileset_provisional.back().setTextureRect(sf::IntRect({j * TILE_WIDTH, i * TILE_WIDTH}, {TILE_WIDTH, TILE_WIDTH}));
-            sp_tileset_shadow.back().setTextureRect(sf::IntRect({j * TILE_WIDTH, i * TILE_WIDTH}, {TILE_WIDTH, TILE_WIDTH}));
+            sp_tileset.back().setTexture(t_tiles_shadow);
+            sp_tileset.back().setTextureRect(sf::IntRect({j * TILE_WIDTH, i * TILE_WIDTH}, {TILE_WIDTH, TILE_WIDTH}));
         }
     }
     

@@ -10,7 +10,7 @@
 
 namespace tool {
 
-void Fill::handle_events(canvas::Canvas& canvas, sf::Event e) {
+void Fill::handle_events(canvas::Canvas& canvas, sf::Event& e) {
     
 }
 

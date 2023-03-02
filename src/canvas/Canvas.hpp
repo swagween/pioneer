@@ -39,7 +39,6 @@ enum LAYER_ORDER {
 };
 
 enum class STYLE {
-    STYLE_NULL,
     FIRSTWIND,
     OVERTURNED,
     GRUB,
@@ -62,6 +61,7 @@ enum class STYLE {
     MANSION
 };
 
+const int NUM_STYLES{20};
 const int CELL_SIZE{32};
 
 class Canvas {

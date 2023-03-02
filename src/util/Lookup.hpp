@@ -39,7 +39,6 @@ inline std::unordered_map<tool::TOOL_TYPE, automa::TOOL_INDEX> get_tool_sprite_i
 };
 
 inline std::unordered_map<int, canvas::STYLE> get_style {
-    {-1,    canvas::STYLE::STYLE_NULL}  ,
     {0,     canvas::STYLE::FIRSTWIND    },
     {1,     canvas::STYLE::OVERTURNED   },
     {2,     canvas::STYLE::GRUB         },
@@ -72,7 +71,6 @@ inline std::unordered_map<int, canvas::BACKDROP> get_backdrop {
 };
 
 inline std::unordered_map<canvas::STYLE, int> get_style_id {
-    {canvas::STYLE::STYLE_NULL, -1},
     {canvas::STYLE::FIRSTWIND, 0    },
     {canvas::STYLE::OVERTURNED, 1   },
     {canvas::STYLE::GRUB, 2         },
@@ -83,16 +81,16 @@ inline std::unordered_map<canvas::STYLE, int> get_style_id {
     {canvas::STYLE::WORM, 7         },
     {canvas::STYLE::SKY, 8          },
     {canvas::STYLE::ASH, 9          },
-    {canvas::STYLE::GREATWING, 10    },
-    {canvas::STYLE::ICE, 11          },
-    {canvas::STYLE::SNOW, 12         },
-    {canvas::STYLE::STONE, 13        },
-    {canvas::STYLE::ABANDONED, 14    },
-    {canvas::STYLE::ANCIENT, 15      },
-    {canvas::STYLE::FACTORY, 16      },
-    {canvas::STYLE::SHADOW, 17       },
-    {canvas::STYLE::HOARDER, 18      },
-    {canvas::STYLE::MANSION, 19      }
+    {canvas::STYLE::GREATWING, 10   },
+    {canvas::STYLE::ICE, 11         },
+    {canvas::STYLE::SNOW, 12        },
+    {canvas::STYLE::STONE, 13       },
+    {canvas::STYLE::ABANDONED, 14   },
+    {canvas::STYLE::ANCIENT, 15     },
+    {canvas::STYLE::FACTORY, 16     },
+    {canvas::STYLE::SHADOW, 17      },
+    {canvas::STYLE::HOARDER, 18     },
+    {canvas::STYLE::MANSION, 19     }
 };
 
 inline std::unordered_map<canvas::BACKDROP, int> get_backdrop_id {
@@ -102,6 +100,29 @@ inline std::unordered_map<canvas::BACKDROP, int> get_backdrop_id {
     {canvas::BACKDROP::BG_OPEN_SKY, 2   },
     {canvas::BACKDROP::BG_RED_SKY, 3    },
     {canvas::BACKDROP::BG_BLACK, 4      }
+};
+
+inline std::unordered_map<canvas::STYLE, const char*> get_style_string {
+    {canvas::STYLE::FIRSTWIND,  "firstwind"     },
+    {canvas::STYLE::OVERTURNED, "overturned"    },
+    {canvas::STYLE::GRUB,       "grub"          },
+    {canvas::STYLE::TOXIC,      "toxic"         },
+    {canvas::STYLE::BASE,       "base"          },
+    {canvas::STYLE::FROZEN,     "frozen"        },
+    {canvas::STYLE::NIGHT,      "night"         },
+    {canvas::STYLE::WORM,       "worm"          },
+    {canvas::STYLE::SKY,        "sky"           },
+    {canvas::STYLE::ASH,        "ash"           },
+    {canvas::STYLE::GREATWING,  "greatwing"     },
+    {canvas::STYLE::ICE,        "ice"           },
+    {canvas::STYLE::SNOW,       "snow"          },
+    {canvas::STYLE::STONE,      "stone"         },
+    {canvas::STYLE::ABANDONED,  "abandoned"     },
+    {canvas::STYLE::ANCIENT,    "ancient"       },
+    {canvas::STYLE::FACTORY,    "factory"       },
+    {canvas::STYLE::SHADOW,     "shadow"        },
+    {canvas::STYLE::HOARDER,    "hoarder"       },
+    {canvas::STYLE::MANSION,    "mansion"       }
 };
 
 }
