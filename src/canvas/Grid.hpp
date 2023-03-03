@@ -22,7 +22,7 @@ public:
     sf::Vector2<uint16_t> dimensions{};
     float spacing{};
     
-    std::vector<Tile> cells;
+    std::vector<Tile> cells{};
     
     void initialize();
     void update();

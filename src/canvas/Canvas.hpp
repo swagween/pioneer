@@ -72,7 +72,6 @@ public:
     Canvas(sf::Vector2<uint16_t> dim);
     void load(const std::string& path);
     bool save(const std::string& path);
-    int get_active_layer();
     
     void edit_tile_at(int i, int j, int new_val, int layer_index);
     int tile_val_at(int i, int j, int layer);

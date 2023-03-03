@@ -115,10 +115,6 @@ bool Canvas::save(const std::string& path) {
     return true;
 }
 
-int Canvas::get_active_layer() {
-    
-}
-
 void Canvas::edit_tile_at(int i, int j, int new_val, int layer_index) {
     if(layer_index >= layers.size()) { return; }
     if((i + j * dimensions.x) >= layers.at(layer_index).grid.cells.size()) { return; };

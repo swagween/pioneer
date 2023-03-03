@@ -133,19 +133,17 @@ public:
     sf::Vector2<float> mouse_clicked_position{};
     
     bool mouse_held{};
-    bool slide_left{};
-    bool slide_right{};
-    bool slide_up{};
-    bool slide_down{};
     
     bool show_grid{true};
     bool show_all_layers{true};
+    bool show_overlay{false};
     
     std::string filepath{};
     
     sf::RectangleShape box{};
     sf::RectangleShape gridbox{};
     sf::RectangleShape target{};
+    sf::RectangleShape backdrop{};
 };
 
 
