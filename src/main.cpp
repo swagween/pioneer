@@ -4,6 +4,9 @@
 //
 
 #include <SFML/Graphics.hpp>
+#include "automa/StateManager.hpp"
+#include "util/Lookup.hpp"
+#include "util/ServiceLocator.hpp"
 #include <iostream>
 #include <chrono>
 
@@ -32,48 +35,31 @@ fs::path find_resources(fs::path exe) {
 
 namespace {
 
+auto SM = automa::StateManager{};
+auto window = sf::RenderWindow();
+
 sf::Color PIONEER_BLUE = sf::Color(85, 173, 232);
 
+std::string state{};
+
 static void show_overlay(bool* debug) {
-    const float PAD = 10.0f;
-    static int corner = 0;
-    ImGuiIO& io = ImGui::GetIO();
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-    if (corner != -1) {
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImVec2 work_pos = viewport->WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
-        ImVec2 work_size = viewport->WorkSize;
-        ImVec2 window_pos, window_pos_pivot;
-        window_pos.x = (corner & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
-        window_pos.y = (corner & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
-        window_pos_pivot.x = (corner & 1) ? 1.0f : 0.0f;
-        window_pos_pivot.y = (corner & 2) ? 1.0f : 0.0f;
-        ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-        window_flags |= ImGuiWindowFlags_NoMove;
-    }
-    ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
-    if (ImGui::Begin("Debug Mode", debug, window_flags)) {
-        ImGui::Text("Debug Window\n" "(right-click to change position)");
-        ImGui::Separator();
-        if (ImGui::IsMousePosValid()) {
-            ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
-        } else {
-            ImGui::Text("Mouse Position: <invalid>");
-        }
-    }
-    ImGui::End();
+    SM.get_current_state().gui_render(window);
 }
 
-const sf::Vector2<uint32_t> aspect_ratio { 3840, 2160 };
-const sf::Vector2<uint32_t> screen_dimensions { aspect_ratio.x / 4, aspect_ratio.y / 4 };
 const int TIME_STEP_MILLI = 100;
-
 float G = 0.8f;
 
 void run(char** argv) {
     
     //load textures
     std::string resource_path = find_resources(argv[0]);
+    const int TILE_WIDTH = 32;
+    
+    //load the tilesets!
+    sf::Texture t_tiles_provisional{};
+    t_tiles_provisional.loadFromFile(resource_path + "/tile/provisional_tiles.png");
+    
+    SM.set_current_state(std::make_unique<automa::Metagrid>());
     
     
     bool debug_mode = false;
@@ -83,14 +69,14 @@ void run(char** argv) {
     auto elapsed_time = Time{};
     auto time_step = Time{std::chrono::milliseconds(TIME_STEP_MILLI)}; //FPS
     //some SFML variables for drawing a basic window + background
-    auto window = sf::RenderWindow{sf::VideoMode{screen_dimensions.x, screen_dimensions.y}, "Pioneer v1.0"};
+    window.create(sf::VideoMode(screen_dimensions.x, screen_dimensions.y), "Pioneer (beta v1.0)");
     ImGui::SFML::Init(window);
     
     window.setVerticalSyncEnabled(true);
     sf::RectangleShape background{};
     background.setSize(static_cast<sf::Vector2<float> >(screen_dimensions));
     background.setPosition(0, 0);
-    background.setFillColor(sf::Color(20, 20, 30));
+    background.setFillColor(sf::Color(40, 60, 80));
     
     
     //game loop
@@ -104,31 +90,51 @@ void run(char** argv) {
         start = now;
         elapsed_time += dt;
         
-        //SFML event variable
         auto event = sf::Event{};
-        //check window events
+        
         while (window.pollEvent(event)) {
             ImGui::SFML::ProcessEvent(event);
             switch(event.type) {
                 case sf::Event::Closed:
+                    lookup::get_state_string.clear();
                     return;
                 case sf::Event::KeyPressed:
-                    //player can refresh grid by pressing 'Z'
                     if(event.key.code == sf::Keyboard::Escape) {
                         return;
                     }
                     if(event.key.code == sf::Keyboard::D) {
                         debug_mode = !debug_mode;
                     }
+                    if(event.key.code == sf::Keyboard::Num1) {
+                        svc::current_tool = std::move(std::make_unique<tool::Hand>());
+                    }
+                    if(event.key.code == sf::Keyboard::Num2) {
+                        svc::current_tool = std::move(std::make_unique<tool::Brush>());
+                    }
+                    if(event.key.code == sf::Keyboard::Num3) {
+                        svc::current_tool = std::move(std::make_unique<tool::Fill>());
+                    }
+                    if(event.key.code == sf::Keyboard::Num4) {
+                        svc::current_tool = std::move(std::make_unique<tool::SelectionRectangular>());
+                    }
+                    if(event.key.code == sf::Keyboard::Enter) {
+                        SM.set_current_state(std::make_unique<automa::Editor>());
+                        SM.get_current_state().init(resource_path);
+                        SM.get_current_state().setTilesetTexture(t_tiles_provisional);
+                    }
+                    if(event.key.code == sf::Keyboard::Equal) {
+                        SM.set_current_state(std::make_unique<automa::Metagrid>());
+                    }
                     break;
                 default:
                     break;
             }
+            SM.get_current_state().handle_events(event, window);
         }
         
         //game logic and rendering
         if(elapsed_time > time_step) {
-            
+            SM.get_current_state().logic();
         }
         
         //ImGui update
@@ -136,11 +142,13 @@ void run(char** argv) {
         
         //ImGui stuff
         show_overlay(&debug_mode);
+        ImGui::ShowDemoWindow();
         
         //my renders
         window.clear();
         window.draw(background);
         
+        SM.get_current_state().render(window);
         
         //draw canvas here
         
