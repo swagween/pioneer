@@ -6,6 +6,7 @@
 //
 
 #include "Metagrid.hpp"
+#include "../util/Lookup.hpp"
 
 namespace meta {
 
@@ -24,6 +25,10 @@ void Metagrid::add_room_at(sf::Vector2<uint16_t> pos, sf::Vector2<uint16_t> dim,
             chunks.at(pos.x + i + pos.y + j * dimensions.y).vacant = false;
         }
     }
+}
+
+void Metagrid::remove_room(uint16_t rm_id) {
+    
 }
 
 }

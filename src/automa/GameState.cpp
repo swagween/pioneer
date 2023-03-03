@@ -12,6 +12,7 @@ namespace automa {
 
 void Editor::init(const std::string &load_path) {
     map.load(load_path + "/level/DOJO");
+//    lookup::room_name_lookup.insert({map.room_id, "DOJO"}); //placeholder. really, the user should have to open a file
     filepath = load_path + "/level/";
     tool_texture.loadFromFile(load_path + "/gui/tools.png");
     map.layers.at(canvas::MIDDLEGROUND).active = true;
@@ -266,11 +267,13 @@ void Editor::gui_render(sf::RenderWindow& win) {
                 ImGui::OpenPopup("Save");
             }
             if (ImGui::BeginPopupModal("Save", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-                ImGui::Text("Please enter a folder name:");
+                ImGui::Text("Please enter a unique room name.");
+                ImGui::Text("Convention is all caps, snake-case, and of the format `STYLE_NAME_INDEX`.");
+                ImGui::Separator(); ImGui::NewLine();
                 static char buffer[128] = "";
                 
-                ImGui::InputTextWithHint("Folder Name", "level_01", buffer, IM_ARRAYSIZE(buffer));
-                ImGui::Separator();
+                ImGui::InputTextWithHint("Folder Name", "DOJO_CORRIDOR_01", buffer, IM_ARRAYSIZE(buffer));
+                ImGui::Separator(); ImGui::NewLine();
                 
                 if (ImGui::Button("Close"))
                     ImGui::CloseCurrentPopup();
@@ -278,6 +281,7 @@ void Editor::gui_render(sf::RenderWindow& win) {
                 if (ImGui::Button("Create")) {
                     std::string savepath = filepath + buffer;
                     map.save(savepath);
+//                    lookup::room_name_lookup.insert( {map.room_id, buffer} );
                     ImGui::CloseCurrentPopup();
                 }
                 
@@ -343,6 +347,8 @@ void Editor::gui_render(sf::RenderWindow& win) {
             {
                 if (ImGui::BeginTabItem("General"))
                 {
+                    ImGui::Text("Room ID: %u", map.room_id);
+//                    ImGui::Text("Room Name: %s", lookup::room_name_lookup.at(map.room_id).c_str());
                     ImGui::Text("Camera Position: (%.1f,%.1f)", svc::cameraLocator.get().physics.position.x, svc::cameraLocator.get().physics.position.y);
                     ImGui::Text("Active Layer: %i", svc::active_layer);
                     ImGui::Text("Num Layers: %lu", map.layers.size());
@@ -394,15 +400,18 @@ void Editor::gui_render(sf::RenderWindow& win) {
     work_size = viewport->WorkSize;
     window_pos = {window_pos.x, window_pos.y + prev_window_size.y + PAD};
     window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+    ImGui::SetNextWindowSizeConstraints(ImVec2{work_size.x/12, work_size.y/4 - prev_window_size.y - PAD*4}, ImVec2{work_size.x/2, work_size.y - prev_window_size.y - PAD*4});
     ImGui::SetNextWindowPos(window_pos);
     if (ImGui::Begin("Tile Palette", debug, window_flags)) {
         prev_window_size = ImGui::GetWindowSize();
         prev_window_pos = ImGui::GetWindowPos();
-        for(int i = 0; i < 64; i++) {
-            for(int j = 0; j < 4; j++) {
-                ImGui::PushID(j + i * 4);
-                if(ImGui::ImageButton(tileset.at(j + i * 4), 2)) {
-                    svc::current_tool.get()->store_tile(j + i * 4);
+        int num_cols = prev_window_size.x/(canvas::CELL_SIZE + 16);
+        int num_rows = 256/num_cols;
+        for(int i = 0; i < num_rows; i++) {
+            for(int j = 0; j < num_cols; j++) {
+                ImGui::PushID(j + i * num_cols);
+                if(ImGui::ImageButton(tileset.at(j + i * num_cols), 2)) {
+                    svc::current_tool.get()->store_tile(j + i * num_cols);
                 }
                 ImGui::PopID();
                 ImGui::SameLine();

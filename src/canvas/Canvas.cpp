@@ -37,6 +37,7 @@ void Canvas::load(const std::string& path) {
     }
     
     //dimensions and layers
+    input >> value; room_id = value; input.ignore();
     input >> value; dimensions.x = value; input.ignore();
     input >> value; dimensions.y = value; input.ignore();
     input >> value; chunk_dimensions.x = value; input.ignore();
@@ -92,7 +93,7 @@ bool Canvas::save(const std::string& path) {
     if (!output.is_open()) {
         return false;
     }
-    output << dimensions.x << ", " << dimensions.y << ", "
+    output << room_id << ", " << dimensions.x << ", " << dimensions.y << ", "
     << chunk_dimensions.x << ", " << chunk_dimensions.y << ", "
     << lookup::get_style_id.at(style) << ", " << lookup::get_backdrop_id.at(bg);
     output.close();
