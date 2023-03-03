@@ -11,7 +11,8 @@
 namespace tool {
 
 void SelectionRectangular::handle_events(canvas::Canvas& canvas, sf::Event& e) {
-    if(in_bounds(canvas.dimensions) && ready) {
+    sf::Vector2<uint16_t> dim = {static_cast<uint16_t>(canvas.dimensions.x + 1), static_cast<uint16_t>(canvas.dimensions.y + 1)};
+    if(in_bounds(dim) && ready) {
         if(active) {
             if(just_clicked) {
                 clicked_position = position;

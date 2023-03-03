@@ -88,6 +88,8 @@ public:
     STYLE style{};
     BACKDROP bg{};
     
+    uint16_t room_id{}; // should be assigned to its constituent chunks
+    
 };
 
 }

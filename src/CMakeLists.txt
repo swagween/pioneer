@@ -18,21 +18,18 @@ target_sources(${PROJECT_NAME} PRIVATE
 	canvas/Layer.hpp
 	canvas/Layer.cpp
 	canvas/Tile.hpp
-	canvas/Tile.cpp
 	canvas/Clipboard.hpp
 	canvas/Clipboard.cpp
  canvas/Grid.hpp
  canvas/Grid.cpp
+ canvas/Metagrid.hpp
+ canvas/Metagrid.cpp
 	tool/Tool.hpp
 	tool/Tool.cpp
-	tool/Brush.hpp
 	tool/Brush.cpp
-	tool/Hand.hpp
 	tool/Hand.cpp
-	tool/Fill.hpp
 	tool/Fill.cpp
     tool/Erase.cpp
-	tool/SelectionRectangular.hpp
 	tool/SelectionRectangular.cpp
         util/Lookup.hpp
         util/Camera.hpp
