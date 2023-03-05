@@ -142,7 +142,7 @@ void run(char** argv) {
         
         //ImGui stuff
         show_overlay(&debug_mode);
-        ImGui::ShowDemoWindow();
+//        ImGui::ShowDemoWindow();
         
         //my renders
         window.clear();

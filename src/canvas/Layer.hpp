@@ -21,6 +21,7 @@ public:
     Layer(uint8_t o, bool c, sf::Vector2<uint16_t> dim) : render_order(o), collidable(c), dimensions(dim) {
         grid = Grid({dim.x, dim.y});
     }
+    void clear();
     Grid grid{};
     uint8_t render_order{};
     bool collidable{};

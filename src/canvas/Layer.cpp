@@ -6,3 +6,13 @@
 //
 
 #include "Layer.hpp"
+
+namespace canvas {
+
+void Layer::clear() {
+    for(auto& cell : grid.cells) {
+        cell.value = 0;
+    }
+}
+
+}

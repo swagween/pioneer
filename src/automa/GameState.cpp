@@ -11,7 +11,7 @@
 namespace automa {
 
 void Editor::init(const std::string &load_path) {
-    map.load(load_path + "/level/DOJO");
+    map.load(load_path + "/level/TOXIC_LAB_01");
 //    lookup::room_name_lookup.insert({map.room_id, "DOJO"}); //placeholder. really, the user should have to open a file
     filepath = load_path + "/level/";
     tool_texture.loadFromFile(load_path + "/gui/tools.png");
@@ -140,7 +140,7 @@ void Metagrid::gui_render(sf::RenderWindow& win) {
     const float PAD = 10.0f;
     static int corner = 0;
     ImGuiIO& io = ImGui::GetIO();
-    io.FontGlobalScale = 2.0;
+    io.FontGlobalScale = 1.0;
     
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
     
@@ -229,7 +229,7 @@ void Editor::gui_render(sf::RenderWindow& win) {
     const float PAD = 10.0f;
     static int corner = 0;
     ImGuiIO& io = ImGui::GetIO();
-    io.FontGlobalScale = 2.0;
+    io.FontGlobalScale = 1.0;
     
     svc::current_tool.get()->position = sf::Vector2<float>{io.MousePos.x, io.MousePos.y} - svc::cameraLocator.get().physics.position;
     svc::secondary_tool.get()->position = sf::Vector2<float>{io.MousePos.x, io.MousePos.y} - svc::cameraLocator.get().physics.position;
@@ -262,7 +262,32 @@ void Editor::gui_render(sf::RenderWindow& win) {
                 }
                 ImGui::EndPopup();
             }
-            if(ImGui::Button("Open")) {}
+            if(ImGui::Button("Open")) {
+                ImGui::OpenPopup("Open");
+            }
+            if (ImGui::BeginPopupModal("Open", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                ImGui::Text("Please enter an existing room name.");
+                ImGui::Text("Convention is all caps, snake-case, and of the format `STYLE_NAME_INDEX`.");
+                ImGui::Separator(); ImGui::NewLine();
+                static char buffer[128] = "";
+                
+                ImGui::InputTextWithHint("Folder Name", "DOJO_CORRIDOR_01", buffer, IM_ARRAYSIZE(buffer));
+                ImGui::Separator(); ImGui::NewLine();
+                
+                if (ImGui::Button("Close"))
+                    ImGui::CloseCurrentPopup();
+                ImGui::SameLine();
+                if (ImGui::Button("Open")) {
+                    std::string loadpath = filepath + buffer;
+                    map.load(loadpath);
+                    setTilesetTexture(tileset_textures.at(lookup::get_style_id.at(map.style)));
+                    ImGui::CloseCurrentPopup();
+                }
+                
+                ImGui::TextUnformatted(buffer);
+                
+                ImGui::EndPopup();
+            }
             if(ImGui::Button("Save")) {
                 ImGui::OpenPopup("Save");
             }
@@ -470,16 +495,26 @@ void Editor::gui_render(sf::RenderWindow& win) {
         ImGui::Checkbox("Show All Layers", &show_all_layers);
         ImGui::Text("Active Layer: ");
         ImGui::SliderInt("##activelr", &svc::active_layer, 0, 7);
-        ImGui::Text("Scene Style: ");
+        
+        ImGui::NewLine(); ImGui::Separator();
+        ImGui::Text("General Settings");
+        ImGui::Separator(); ImGui::NewLine();
+        ImGui::Checkbox("Show Overlay", &show_overlay);
+        ImGui::NewLine(); ImGui::Separator();
+        ImGui::Text("Actions");
+        ImGui::Separator(); ImGui::NewLine();
+        ImGui::Text("Set Scene Style: ");
         static int style_current = lookup::get_style_id.at(map.style);
         if(ImGui::Combo("##scenestyle", &style_current, styles, IM_ARRAYSIZE(styles))) {
             map.style = lookup::get_style.at(style_current);
             setTilesetTexture(tileset_textures.at(style_current));
         }
-        ImGui::NewLine(); ImGui::Separator();
-        ImGui::Text("General Settings");
-        ImGui::Separator(); ImGui::NewLine();
-        ImGui::Checkbox("Show Overlay", &show_overlay);
+        if(ImGui::Button("Clear Layer")) {
+            map.layers.at(svc::active_layer).clear();
+        }
+        if(ImGui::Button("Clear All")) {
+            for(auto& layer : map.layers) { layer.clear(); }
+        }
         prev_window_size = ImGui::GetWindowSize();
         prev_window_pos = ImGui::GetWindowPos();
         ImGui::End();
